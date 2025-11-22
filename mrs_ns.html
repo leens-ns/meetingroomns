@@ -378,6 +378,17 @@
       color: #4b5563;
     }
 
+    .slot.disabled {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+    .slot.disabled span {
+      font-size: 0.7rem;
+      color: #b91c1c;
+      font-weight: 500;
+    }
+
     .week-grid {
       width: 100%;
       border-collapse: collapse;
@@ -480,6 +491,11 @@
     .legend-dot.booked {
       background: var(--slot-booked);
       border-color: var(--slot-booked-border);
+    }
+
+    .legend-dot.disabled {
+      background: #fee2e2;
+      border-color: #fecaca;
     }
 
     .alert {
@@ -691,6 +707,9 @@
             <div class="legend-item">
               <span class="legend-dot booked"></span> <span>예약됨</span>
             </div>
+            <div class="legend-item">
+              <span class="legend-dot disabled"></span> <span>예약 불가</span>
+            </div>
           </div>
         </section>
 
@@ -699,7 +718,7 @@
           <div class="view-title-row">
             <div class="view-title">
               <span>주간 예약 현황</span>
-              <span class="tag">월요일 ~ 일요일</span>
+              <span class="tag">월요일 ~ 금요일</span>
             </div>
             <div class="date-nav">
               <button type="button" id="prev-week">◀</button>
@@ -717,8 +736,6 @@
                 <th>수</th>
                 <th>목</th>
                 <th>금</th>
-                <th>토</th>
-                <th>일</th>
               </tr>
             </thead>
             <tbody>
@@ -837,15 +854,31 @@
     }
 
     const date = new Date(selectedDate);
+    const dateKey = formatDateKey(date);
+    const existing = reservations.find(
+      (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === timeIndex
+    );
+
+    const currentName = currentUser.name || currentUser.email;
+
+    // 이미 예약된 상태라면: 본인 예약만 취소 가능
+    if (existing) {
+      if (existing.name !== currentName) {
+        showError("다른 사용자의 예약은 취소할 수 없습니다.");
+        return;
+      }
+      await deleteReservation(existing.id);
+      await fetchReservations();
+      return;
+    }
+
+    // 비어 있는 상태라면: 새로 예약 (월~금만)
     if (!isWeekday(date)) {
       showError("예약은 월요일부터 금요일까지만 가능합니다.");
       return;
     }
 
-    const dateKey = formatDateKey(date);
-    const nameVal = currentUser.name || currentUser.email;
-
-    if (await addReservation(dateKey, room, timeIndex, nameVal, "")) {
+    if (await addReservation(dateKey, room, timeIndex, currentName, "")) {
       await fetchReservations();
     } else {
       showError("선택한 시간에는 이미 예약이 존재합니다.");
@@ -888,11 +921,17 @@
     return true;
   }
 
+  async function deleteReservation(id) {
+    await db.collection("reservations").doc(id).delete();
+    reservations = reservations.filter((r) => r.id !== id);
+  }
+
   // ---- UI 렌더링 ----
   function renderDayView() {
     const tbody = document.querySelector("#day-grid tbody");
     tbody.innerHTML = "";
     const dateKey = formatDateKey(selectedDate);
+    const weekend = !isWeekday(selectedDate);
 
     TIME_SLOTS.forEach((slot, index) => {
       const tr = document.createElement("tr");
@@ -905,24 +944,36 @@
       ROOMS.forEach((room) => {
         const td = document.createElement("td");
         const slotDiv = document.createElement("div");
-        const existing = reservations.find(
-          (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === index
-        );
 
-        if (existing) {
-          slotDiv.className = "slot booked";
+        if (weekend) {
+          // 토/일: 항상 예약 불가
+          slotDiv.className = "slot disabled";
           const main = document.createElement("span");
-          main.textContent = existing.name; // 예약자명만 표시
+          main.textContent = "예약 불가";
           slotDiv.appendChild(main);
         } else {
-          slotDiv.className = "slot free";
-          const main = document.createElement("span");
-          main.textContent = "예약 가능";
-          slotDiv.appendChild(main);
-          // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약 시도
-          slotDiv.addEventListener("click", () => {
-            handleQuickReserve(room, index);
-          });
+          const existing = reservations.find(
+            (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === index
+          );
+
+          if (existing) {
+            slotDiv.className = "slot booked";
+            const main = document.createElement("span");
+            main.textContent = existing.name; // 예약자명만 표시
+            slotDiv.appendChild(main);
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          } else {
+            slotDiv.className = "slot free";
+            const main = document.createElement("span");
+            main.textContent = "예약 가능";
+            slotDiv.appendChild(main);
+            // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약/취소 토글
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          }
         }
 
         td.appendChild(slotDiv);
@@ -953,7 +1004,7 @@
       roomTd.textContent = room;
       tr.appendChild(roomTd);
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 5; i++) {
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + i);
         const dateKey = formatDateKey(dayDate);
