@@ -392,6 +392,96 @@
       color: #1d4ed8;
     }
 
+    /* 내 예약 / 다른 사람 예약 색상 구분 */
+    .slot.booked.my-reservation,
+    .week-slot-item.my-reservation {
+      background: #1e3a8a;
+      border-color: #1f2937;
+    }
+
+    .slot.booked.my-reservation span,
+    .week-slot-item.my-reservation span {
+      color: #f9fafb;
+    }
+
+    .slot.booked.other-reservation,
+    .week-slot-item.other-reservation {
+      background: #e5e7eb;
+      border-color: #d1d5db;
+    }
+
+    .slot.booked.other-reservation span,
+    .week-slot-item.other-reservation span {
+      color: #111827;
+    }
+
+    .legend-row.legend-my {
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .legend-row.legend-my .legend-item {
+      font-size: 0.7rem;
+    }
+
+    .legend-dot.my-res-dot {
+      background: #1e3a8a;
+      border-color: #1f2937;
+    }
+
+    .legend-dot.other-res-dot {
+      background: #e5e7eb;
+      border-color: #d1d5db;
+    }
+
+    .toggle-myonly {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: #4b5563;
+      cursor: pointer;
+    }
+
+    .toggle-myonly input {
+      display: none;
+    }
+
+    .toggle-switch {
+      width: 32px;
+      height: 18px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      border: 1px solid #d1d5db;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 2px;
+      box-sizing: border-box;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .toggle-handle {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+      transform: translateX(0);
+      transition: transform 0.15s ease;
+    }
+
+    .toggle-myonly input:checked + .toggle-switch {
+      background: #4f46e5;
+      border-color: #4338ca;
+    }
+
+    .toggle-myonly input:checked + .toggle-switch .toggle-handle {
+      transform: translateX(12px);
+    }
+
     /* 사용자별 고유 색상 (이메일/이름 해시 기반) */
     .user-color-0.slot.booked,
     .user-color-0.week-slot-item {
@@ -838,6 +928,22 @@
               <span class="legend-dot disabled"></span> <span>예약 불가</span>
             </div>
           </div>
+
+          <div class="legend-row legend-my">
+            <div class="legend-item">
+              <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+            </div>
+            <label class="toggle-myonly">
+              <span>내 예약만 보기</span>
+              <input type="checkbox" id="my-only-toggle" />
+              <span class="toggle-switch">
+                <span class="toggle-handle"></span>
+              </span>
+            </label>
+          </div>
         </section>
 
         <!-- 주간 예약 현황 -->
@@ -923,9 +1029,18 @@
     return USER_COLOR_CLASSES[idx];
   }
 
-  function getUserColorClassFromReservation(reservation) {
-    const key = reservation.email || reservation.name || "";
-    return getUserColorClassFromKey(key);
+  function isMyReservation(reservation) {
+    if (!currentUser || !reservation) return false;
+    const myEmail = currentUser.email || "";
+    const resEmail = reservation.email || "";
+    if (myEmail && resEmail && myEmail === resEmail) return true;
+    const myName = currentUser.name || "";
+    if (!resEmail && myName && reservation.name && myName === reservation.name) return true;
+    return false;
+  }
+
+  function getReservationColorClass(reservation) {
+    return isMyReservation(reservation) ? "my-reservation" : "other-reservation";
   }
 
 
@@ -958,6 +1073,7 @@
   let currentUser = null; // {name, email}
   let selectedDate = new Date();
   let weekBaseDate = new Date();
+  let showOnlyMine = false;
 
   // ---- 유틸 함수 ----
   function formatDateKey(date) {
@@ -1138,7 +1254,7 @@
           );
 
           if (existing) {
-            const colorClass = getUserColorClassFromReservation(existing);
+            const colorClass = getReservationColorClass(existing);
             slotDiv.className = "slot booked " + colorClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
@@ -1197,7 +1313,11 @@
           .filter((r) => r.date === dateKey && r.room === room)
           .sort((a, b) => a.timeSlotIndex - b.timeSlotIndex);
 
-        if (roomReservations.length === 0) {
+        const visibleReservations = showOnlyMine
+          ? roomReservations.filter((r) => isMyReservation(r))
+          : roomReservations;
+
+        if (visibleReservations.length === 0) {
           const empty = document.createElement("div");
           empty.className = "empty-week-cell";
           empty.textContent = "-";
@@ -1206,9 +1326,9 @@
           const list = document.createElement("div");
           list.className = "week-slot-list";
 
-          roomReservations.forEach((r) => {
+          visibleReservations.forEach((r) => {
             const item = document.createElement("div");
-            const colorClass = getUserColorClassFromReservation(r);
+            const colorClass = getReservationColorClass(r);
             item.className = "week-slot-item " + colorClass;
 
             const timeSpan = document.createElement("span");
@@ -1334,6 +1454,14 @@
   function attachEventHandlers() {
     document.getElementById("login-btn").addEventListener("click", googleLogin);
     document.getElementById("logout-btn").addEventListener("click", googleLogout);
+
+    const myOnlyToggle = document.getElementById("my-only-toggle");
+    if (myOnlyToggle) {
+      myOnlyToggle.addEventListener("change", (e) => {
+        showOnlyMine = e.target.checked;
+        renderWeekView();
+      });
+    }
 
     document.getElementById("date-input").addEventListener("change", (e) => {
       const d = parseDateFromInput(e.target.value);
