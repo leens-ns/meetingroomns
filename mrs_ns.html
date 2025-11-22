@@ -421,6 +421,43 @@
       border: 1px solid #fecaca;
     }
 
+
+    /* My vs Other reservation coloring */
+    .slot.booked.my-reservation,
+    .week-slot-item.my-reservation {
+      background: #dbeafe;
+      border-color: #1d4ed8;
+    }
+
+    .slot.booked.my-reservation span,
+    .week-slot-item.my-reservation span {
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    .slot.booked.other-reservation,
+    .week-slot-item.other-reservation {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+    }
+
+    .slot.booked.other-reservation span,
+    .week-slot-item.other-reservation span {
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .legend-dot.my-res-dot {
+      background: #dbeafe;
+      border-color: #1d4ed8;
+    }
+
+    .legend-dot.other-res-dot {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+    }
+
+
     .slot.disabled span {
       font-size: 0.7rem;
       color: #b91c1c;
@@ -476,6 +513,18 @@
       vertical-align: top;
     }
 
+    .day-grid th,
+    .day-grid td,
+    .week-grid th,
+    .week-grid td {
+      word-break: break-all;
+    }
+
+    .week-slot-time,
+    .week-slot-name {
+      word-break: break-all;
+    }
+
     .week-grid th {
       font-weight: 600;
       color: #374151;
@@ -487,6 +536,8 @@
       font-weight: 600;
       background: #f9fafb;
       white-space: normal;
+      text-align: center;
+      vertical-align: middle;
     }
 
     .week-slot-list {
@@ -540,11 +591,21 @@
 
     .legend-row {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       gap: 10px;
       margin-top: 6px;
       font-size: 0.7rem;
       color: #6b7280;
+      flex-wrap: wrap;
+    }
+
+    .legend-row-left,
+    .legend-row-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .legend-item {
@@ -670,7 +731,8 @@
       }
 
       header.app-header h1 {
-        font-size: 1.8rem;
+        font-size: 1.35rem;
+        white-space: normal;
       }
 
       .auth-box {
@@ -824,14 +886,24 @@
           </table>
 
           <div class="legend-row">
-            <div class="legend-item">
-              <span class="legend-dot"></span> <span>예약 가능</span>
+            <div class="legend-row-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
             </div>
-            <div class="legend-item">
-              <span class="legend-dot booked"></span> <span>예약됨</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot disabled"></span> <span>예약 불가</span>
+            <div class="legend-row-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>예약 가능</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span> <span>예약됨</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot disabled"></span> <span>예약 불가</span>
+              </div>
             </div>
           </div>
         </section>
@@ -843,10 +915,16 @@
               <span>주간 예약 현황</span>
               <span class="tag">월요일 ~ 금요일</span>
             </div>
-            <div class="date-nav">
-              <button type="button" id="prev-week">◀</button>
-              <span class="date-display" id="week-display"></span>
-              <button type="button" id="next-week">▶</button>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+              <div class="date-nav">
+                <button type="button" id="prev-week">◀</button>
+                <span class="date-display" id="week-display"></span>
+                <button type="button" id="next-week">▶</button>
+              </div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#4b5563;">
+                <span>내 예약만 보기</span>
+                <input type="checkbox" id="my-week-only-toggle" style="transform:scale(1.1);" />
+              </label>
             </div>
           </div>
 
@@ -865,6 +943,24 @@
               <!-- JS로 채움 -->
             </tbody>
           </table>
+          <div class="legend-row" style="margin-top:8px;">
+            <div class="legend-row-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
+            </div>
+            <div class="legend-row-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>예약 가능 없음</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span> <span>예약 있음</span>
+              </div>
+            </div>
+          </div>
         </section>
       </section>
     </main>
@@ -940,6 +1036,7 @@
   let currentUser = null; // {name, email}
   let selectedDate = new Date();
   let weekBaseDate = new Date();
+  let weekShowMyOnly = false;
 
   // ---- 유틸 함수 ----
   function formatDateKey(date) {
@@ -1199,8 +1296,12 @@
           );
 
           if (existing) {
-            const roomClass = ROOM_CLASS_MAP[room] || "";
-            slotDiv.className = "slot booked " + roomClass;
+            let ownerClass = "other-reservation";
+            const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
+            if (currentName && existing.name === currentName) {
+              ownerClass = "my-reservation";
+            }
+            slotDiv.className = "slot booked " + ownerClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
             slotDiv.appendChild(main);
@@ -1254,9 +1355,14 @@
 
         const td = document.createElement("td");
 
-        const roomReservations = reservations
+        let roomReservations = reservations
           .filter((r) => r.date === dateKey && r.room === room)
           .sort((a, b) => a.timeSlotIndex - b.timeSlotIndex);
+
+        if (weekShowMyOnly && currentUser) {
+          const currentName = currentUser.name || currentUser.email;
+          roomReservations = roomReservations.filter((r) => r.name === currentName);
+        }
 
         if (roomReservations.length === 0) {
           const empty = document.createElement("div");
@@ -1269,8 +1375,12 @@
 
           roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            const roomClass = ROOM_CLASS_MAP[room] || "";
-            item.className = "week-slot-item " + roomClass;
+            let ownerClass = "other-reservation";
+            if (currentUser) {
+              const currentName = currentUser.name || currentUser.email;
+              if (r.name === currentName) ownerClass = "my-reservation";
+            }
+            item.className = "week-slot-item " + ownerClass;
 
             const timeSpan = document.createElement("span");
             timeSpan.className = "week-slot-time";
@@ -1431,6 +1541,14 @@
       weekBaseDate.setDate(weekBaseDate.getDate() + 7);
       renderWeekView();
     });
+
+    const myWeekToggle = document.getElementById("my-week-only-toggle");
+    if (myWeekToggle) {
+      myWeekToggle.addEventListener("change", (e) => {
+        weekShowMyOnly = e.target.checked;
+        renderWeekView();
+      });
+    }
 
     document.getElementById("reservation-form").addEventListener("submit", async (e) => {
       e.preventDefault();
