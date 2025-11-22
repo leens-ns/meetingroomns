@@ -358,7 +358,23 @@
     .day-grid td.time-cell {
       font-weight: 600;
       background: #f9fafb;
-      white-space: nowrap;
+      white-space: normal;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    .day-grid td.time-cell .time-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .day-grid td.time-cell .time-range {
+      font-size: 0.7rem;
+      color: #4b5563;
+      display: block;
     }
 
     .slot {
@@ -390,78 +406,6 @@
       font-size: 0.7rem;
       font-weight: 600;
       color: #1d4ed8;
-    }
-
-    /* 사용자별 고유 색상 (이메일/이름 해시 기반) */
-    .user-color-0.slot.booked,
-    .user-color-0.week-slot-item {
-      background: #e0f2fe;
-      border-color: #60a5fa;
-    }
-    .user-color-0.slot.booked span,
-    .user-color-0.week-slot-item span {
-      color: #1e3a8a;
-    }
-
-    .user-color-1.slot.booked,
-    .user-color-1.week-slot-item {
-      background: #dcfce7;
-      border-color: #86efac;
-    }
-    .user-color-1.slot.booked span,
-    .user-color-1.week-slot-item span {
-      color: #14532d;
-    }
-
-    .user-color-2.slot.booked,
-    .user-color-2.week-slot-item {
-      background: #fef3c7;
-      border-color: #facc15;
-    }
-    .user-color-2.slot.booked span,
-    .user-color-2.week-slot-item span {
-      color: #92400e;
-    }
-
-    .user-color-3.slot.booked,
-    .user-color-3.week-slot-item {
-      background: #fee2e2;
-      border-color: #fecaca;
-    }
-    .user-color-3.slot.booked span,
-    .user-color-3.week-slot-item span {
-      color: #7f1d1d;
-    }
-
-    .user-color-4.slot.booked,
-    .user-color-4.week-slot-item {
-      background: #f5d0fe;
-      border-color: #e879f9;
-    }
-    .user-color-4.slot.booked span,
-    .user-color-4.week-slot-item span {
-      color: #86198f;
-    }
-
-    .user-color-5.slot.booked,
-    .user-color-5.week-slot-item {
-      background: #ddd6fe;
-      border-color: #a855f7;
-    }
-    .user-color-5.slot.booked span,
-    .user-color-5.week-slot-item span {
-      color: #4c1d95;
-    }
-
-    /* 개발자 전용 색상 (leens@nsworld.net) */
-    .user-color-dev.slot.booked,
-    .user-color-dev.week-slot-item {
-      background: #0f172a;
-      border-color: #1f2937;
-    }
-    .user-color-dev.slot.booked span,
-    .user-color-dev.week-slot-item span {
-      color: #e5e7eb;
     }
 
     .slot-booked-meta {
@@ -900,35 +844,6 @@
   // ---- 상수 정의 ----
   const ROOMS = ["가온누리", "교무실", "교육문화관", "상담실", "옥스퍼드 교실"];
 
-  const USER_COLOR_CLASSES = [
-    "user-color-0",
-    "user-color-1",
-    "user-color-2",
-    "user-color-3",
-    "user-color-4",
-    "user-color-5"
-  ];
-
-  function getUserColorClassFromKey(key) {
-    if (!key) return USER_COLOR_CLASSES[0];
-    // 개발자 전용 색상 우선 적용
-    if (key === "leens@nsworld.net") {
-      return "user-color-dev";
-    }
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-    }
-    const idx = hash % USER_COLOR_CLASSES.length;
-    return USER_COLOR_CLASSES[idx];
-  }
-
-  function getUserColorClassFromReservation(reservation) {
-    const key = reservation.email || reservation.name || "";
-    return getUserColorClassFromKey(key);
-  }
-
-
   const ROOM_CLASS_MAP = {
     "가온누리": "room-gaonnuri",
     "교무실": "room-gyomusil",
@@ -950,6 +865,21 @@
     "14:15~14:55",
     "15:00~15:40",
     "15:40~16:30"
+  ];
+
+
+  const TIME_LABELS = [
+    "아침시간",
+    "1교시",
+    "2교시",
+    "3교시",
+    "4교시",
+    "5교시",
+    "점심시간",
+    "6교시",
+    "7교시",
+    "8교시",
+    "일과후"
   ];
 
   // Firestore 연동용 예약 캐시
@@ -1004,6 +934,48 @@
     return day >= 1 && day <= 5; // 월~금만 허용
   }
 
+
+  function isConsultingBlocked(date, room) {
+    if (room !== "상담실") return false;
+    const cutoff = new Date(2026, 1, 28); // 2026-02-28
+    if (date > cutoff) return false;
+    const day = date.getDay(); // 0(일)~6(토)
+    return day === 4 || day === 5; // 목(4), 금(5)
+  }
+
+  function isRoomTimeBlocked(date, room, timeSlotIndex) {
+    const day = date.getDay(); // 0(일)~6(토)
+
+    // 1) 상담실: 기존 규칙 (2026.2.28까지 목/금 전체 시간대)
+    if (isConsultingBlocked(date, room)) {
+      return true;
+    }
+
+    // 2) 옥스퍼드 교실: 매일 점심시간(12:40~13:25, TIME_LABELS index 6) 예약 불가
+    if (room === "옥스퍼드 교실" && timeSlotIndex === 6) {
+      return true;
+    }
+
+    // 3) 교무실: 월, 금요일 7, 8교시 예약 불가
+    // 7교시: index 8, 8교시: index 9
+    if (room === "교무실" && (day === 1 || day === 5) && (timeSlotIndex === 8 || timeSlotIndex === 9)) {
+      return true;
+    }
+
+    // 4) 가온누리: 2026.2.28까지 월, 화, 금요일 3,4,5,6교시 예약 불가
+    // 3교시: index 3, 4교시: 4, 5교시: 5, 6교시: 7
+    if (room === "가온누리") {
+      const cutoffGaon = new Date(2026, 1, 28); // 2026-02-28
+      if (date <= cutoffGaon &&
+          (day === 1 || day === 2 || day === 5) &&
+          ([3,4,5,7].includes(timeSlotIndex))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   async function handleQuickReserve(room, timeIndex) {
     clearError();
 
@@ -1037,7 +1009,12 @@
       return;
     }
 
-    if (await addReservation(dateKey, room, timeIndex, currentName, "", currentUser.email || "")) {
+    if (isRoomTimeBlocked(date, room, timeIndex)) {
+      showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
+      return;
+    }
+
+    if (await addReservation(dateKey, room, timeIndex, currentName, "")) {
       await fetchReservations();
     } else {
       showError("선택한 시간에는 이미 예약이 존재합니다.");
@@ -1067,15 +1044,40 @@
   // ---- Firestore 연동 ----
   async function fetchReservations() {
     const snapshot = await db.collection("reservations").get();
-    reservations = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(now.getDate() - 14);
+    const cutoffKey = formatDateKey(cutoff);
+
+    const active = [];
+    const toDelete = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateKey = data.date;
+      if (dateKey && dateKey < cutoffKey) {
+        toDelete.push(doc.ref);
+      } else {
+        active.push({
+          id: doc.id,
+          ...data
+        });
+      }
+    });
+
+    if (toDelete.length > 0) {
+      const batch = db.batch();
+      toDelete.forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+
+    reservations = active;
     renderDayView();
     renderWeekView();
   }
 
-  async function addReservation(dateKey, room, timeSlotIndex, name, note, email) {
+  async function addReservation(dateKey, room, timeSlotIndex, name, note) {
     if (hasConflict(dateKey, room, timeSlotIndex)) {
       return false;
     }
@@ -1085,8 +1087,7 @@
       room,
       timeSlotIndex,
       name,
-      note: note || "",
-      email: email || ""
+      note: note || ""
     });
 
     reservations.push({
@@ -1095,8 +1096,7 @@
       room,
       timeSlotIndex,
       name,
-      note: note || "",
-      email: email || ""
+      note: note || ""
     });
 
     return true;
@@ -1119,15 +1119,24 @@
 
       const timeTd = document.createElement("td");
       timeTd.className = "time-cell";
-      timeTd.textContent = slot;
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "time-label";
+      labelDiv.textContent = TIME_LABELS[index];
+      const rangeDiv = document.createElement("div");
+      rangeDiv.className = "time-range";
+      rangeDiv.textContent = slot;
+      timeTd.appendChild(labelDiv);
+      timeTd.appendChild(rangeDiv);
       tr.appendChild(timeTd);
 
       ROOMS.forEach((room) => {
         const td = document.createElement("td");
         const slotDiv = document.createElement("div");
 
-        if (weekend) {
-          // 토/일: 항상 예약 불가
+        const blocked = isRoomTimeBlocked(selectedDate, room, index);
+
+        if (weekend || blocked) {
+          // 토/일 또는 회의실/시간대별 예약 불가
           slotDiv.className = "slot disabled";
           const main = document.createElement("span");
           main.textContent = "예약 불가";
@@ -1138,8 +1147,8 @@
           );
 
           if (existing) {
-            const colorClass = getUserColorClassFromReservation(existing);
-            slotDiv.className = "slot booked " + colorClass;
+            const roomClass = ROOM_CLASS_MAP[room] || "";
+            slotDiv.className = "slot booked " + roomClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
             slotDiv.appendChild(main);
@@ -1208,8 +1217,8 @@
 
           roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            const colorClass = getUserColorClassFromReservation(r);
-            item.className = "week-slot-item " + colorClass;
+            const roomClass = ROOM_CLASS_MAP[room] || "";
+            item.className = "week-slot-item " + roomClass;
 
             const timeSpan = document.createElement("span");
             timeSpan.className = "week-slot-time";
@@ -1404,14 +1413,19 @@
         return;
       }
 
-      const baseDateKey = formatDateKey(baseDate);
       const timeIndex = parseInt(timeVal, 10);
+      if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
+        showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
+        return;
+      }
+
+      const baseDateKey = formatDateKey(baseDate);
 
       let successCount = 0;
       let conflictCount = 0;
 
       if (repeatVal === "none") {
-        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal, currentUser.email || "")) {
+        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal)) {
           successCount++;
         } else {
           conflictCount++;
@@ -1430,7 +1444,7 @@
         const tempDate = new Date(baseDate);
         while (tempDate <= untilDate) {
           const key = formatDateKey(tempDate);
-          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal, currentUser.email || "")) {
+          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal)) {
             successCount++;
           } else {
             conflictCount++;
