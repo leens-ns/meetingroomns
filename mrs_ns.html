@@ -19,6 +19,16 @@
       --slot-free: #f9fafb;
       --slot-booked: #e0f2fe;
       --slot-booked-border: #60a5fa;
+      --room-gaonnuri-bg: #fee2e2;
+      --room-gaonnuri-border: #fca5a5;
+      --room-gyomusil-bg: #dcfce7;
+      --room-gyomusil-border: #86efac;
+      --room-gyoyuk-bg: #e0f2fe;
+      --room-gyoyuk-border: #60a5fa;
+      --room-sangdam-bg: #fef3c7;
+      --room-sangdam-border: #facc15;
+      --room-oxford-bg: #f5d0fe;
+      --room-oxford-border: #e879f9;
       --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
       --radius-lg: 18px;
       --radius-pill: 999px;
@@ -58,6 +68,15 @@
       font-size: clamp(1.8rem, 3vw, 2.6rem);
       color: #0f172a;
       text-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header.app-header h1 .logo-img {
+      height: 28px;
+      width: auto;
+      flex-shrink: 0;
     }
 
     .auth-box {
@@ -390,6 +409,37 @@
       font-weight: 500;
     }
 
+
+    .slot.booked.room-gaonnuri,
+    .week-slot-item.room-gaonnuri {
+      background: var(--room-gaonnuri-bg);
+      border-color: var(--room-gaonnuri-border);
+    }
+
+    .slot.booked.room-gyomusil,
+    .week-slot-item.room-gyomusil {
+      background: var(--room-gyomusil-bg);
+      border-color: var(--room-gyomusil-border);
+    }
+
+    .slot.booked.room-gyoyuk,
+    .week-slot-item.room-gyoyuk {
+      background: var(--room-gyoyuk-bg);
+      border-color: var(--room-gyoyuk-border);
+    }
+
+    .slot.booked.room-sangdam,
+    .week-slot-item.room-sangdam {
+      background: var(--room-sangdam-bg);
+      border-color: var(--room-sangdam-border);
+    }
+
+    .slot.booked.room-oxford,
+    .week-slot-item.room-oxford {
+      background: var(--room-oxford-bg);
+      border-color: var(--room-oxford-border);
+    }
+
     .week-grid {
       width: 100%;
       border-collapse: collapse;
@@ -565,7 +615,7 @@
 <body>
   <div class="app-shell">
     <header class="app-header">
-      <h1>남성초등학교 회의실 예약 시스템</h1>
+      <h1><img src="https://nisb.kr/plugins/custom_plugin/src/Components/Themes/CustomTheme/assets/images/ft_logo_1.png" alt="남성초 로고" class="logo-img" />남성초등학교 회의실 예약 시스템</h1>
       <div class="auth-box">
         <div>
           <div class="user-label">
@@ -778,6 +828,15 @@
   // ---- 상수 정의 ----
   const ROOMS = ["가온누리", "교무실", "교육문화관", "상담실", "옥스퍼드 교실"];
 
+  const ROOM_CLASS_MAP = {
+    "가온누리": "room-gaonnuri",
+    "교무실": "room-gyomusil",
+    "교육문화관": "room-gyoyuk",
+    "상담실": "room-sangdam",
+    "옥스퍼드 교실": "room-oxford"
+  };
+
+
   const TIME_SLOTS = [
     "08:30~08:55",
     "09:00~09:40",
@@ -884,6 +943,26 @@
     }
   }
 
+
+  async function handleWeekItemClick(reservation) {
+    clearError();
+
+    if (!currentUser) {
+      showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+      return;
+    }
+
+    const currentName = currentUser.name || currentUser.email;
+
+    if (reservation.name !== currentName) {
+      showError("다른 사용자의 예약은 취소할 수 없습니다.");
+      return;
+    }
+
+    await deleteReservation(reservation.id);
+    await fetchReservations();
+  }
+
   // ---- Firestore 연동 ----
   async function fetchReservations() {
     const snapshot = await db.collection("reservations").get();
@@ -956,7 +1035,8 @@
           );
 
           if (existing) {
-            slotDiv.className = "slot booked";
+            const roomClass = ROOM_CLASS_MAP[room] || "";
+            slotDiv.className = "slot booked " + roomClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
             slotDiv.appendChild(main);
@@ -1025,7 +1105,8 @@
 
           roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            item.className = "week-slot-item";
+            const roomClass = ROOM_CLASS_MAP[room] || "";
+            item.className = "week-slot-item " + roomClass;
 
             const timeSpan = document.createElement("span");
             timeSpan.className = "week-slot-time";
@@ -1037,6 +1118,11 @@
 
             item.appendChild(timeSpan);
             item.appendChild(nameSpan);
+
+            // 주간 보기에서도 클릭 시 예약 취소 가능 (본인 예약만)
+            item.addEventListener("click", () => {
+              handleWeekItemClick(r);
+            });
 
             list.appendChild(item);
           });
