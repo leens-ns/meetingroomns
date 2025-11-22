@@ -392,6 +392,78 @@
       color: #1d4ed8;
     }
 
+    /* 사용자별 고유 색상 (이메일/이름 해시 기반) */
+    .user-color-0.slot.booked,
+    .user-color-0.week-slot-item {
+      background: #e0f2fe;
+      border-color: #60a5fa;
+    }
+    .user-color-0.slot.booked span,
+    .user-color-0.week-slot-item span {
+      color: #1e3a8a;
+    }
+
+    .user-color-1.slot.booked,
+    .user-color-1.week-slot-item {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+    .user-color-1.slot.booked span,
+    .user-color-1.week-slot-item span {
+      color: #14532d;
+    }
+
+    .user-color-2.slot.booked,
+    .user-color-2.week-slot-item {
+      background: #fef3c7;
+      border-color: #facc15;
+    }
+    .user-color-2.slot.booked span,
+    .user-color-2.week-slot-item span {
+      color: #92400e;
+    }
+
+    .user-color-3.slot.booked,
+    .user-color-3.week-slot-item {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+    .user-color-3.slot.booked span,
+    .user-color-3.week-slot-item span {
+      color: #7f1d1d;
+    }
+
+    .user-color-4.slot.booked,
+    .user-color-4.week-slot-item {
+      background: #f5d0fe;
+      border-color: #e879f9;
+    }
+    .user-color-4.slot.booked span,
+    .user-color-4.week-slot-item span {
+      color: #86198f;
+    }
+
+    .user-color-5.slot.booked,
+    .user-color-5.week-slot-item {
+      background: #ddd6fe;
+      border-color: #a855f7;
+    }
+    .user-color-5.slot.booked span,
+    .user-color-5.week-slot-item span {
+      color: #4c1d95;
+    }
+
+    /* 개발자 전용 색상 (leens@nsworld.net) */
+    .user-color-dev.slot.booked,
+    .user-color-dev.week-slot-item {
+      background: #0f172a;
+      border-color: #1f2937;
+    }
+    .user-color-dev.slot.booked span,
+    .user-color-dev.week-slot-item span {
+      color: #e5e7eb;
+    }
+
     .slot-booked-meta {
       display: block;
       font-size: 0.7rem;
@@ -828,6 +900,35 @@
   // ---- 상수 정의 ----
   const ROOMS = ["가온누리", "교무실", "교육문화관", "상담실", "옥스퍼드 교실"];
 
+  const USER_COLOR_CLASSES = [
+    "user-color-0",
+    "user-color-1",
+    "user-color-2",
+    "user-color-3",
+    "user-color-4",
+    "user-color-5"
+  ];
+
+  function getUserColorClassFromKey(key) {
+    if (!key) return USER_COLOR_CLASSES[0];
+    // 개발자 전용 색상 우선 적용
+    if (key === "leens@nsworld.net") {
+      return "user-color-dev";
+    }
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+    }
+    const idx = hash % USER_COLOR_CLASSES.length;
+    return USER_COLOR_CLASSES[idx];
+  }
+
+  function getUserColorClassFromReservation(reservation) {
+    const key = reservation.email || reservation.name || "";
+    return getUserColorClassFromKey(key);
+  }
+
+
   const ROOM_CLASS_MAP = {
     "가온누리": "room-gaonnuri",
     "교무실": "room-gyomusil",
@@ -936,7 +1037,7 @@
       return;
     }
 
-    if (await addReservation(dateKey, room, timeIndex, currentName, "")) {
+    if (await addReservation(dateKey, room, timeIndex, currentName, "", currentUser.email || "")) {
       await fetchReservations();
     } else {
       showError("선택한 시간에는 이미 예약이 존재합니다.");
@@ -974,7 +1075,7 @@
     renderWeekView();
   }
 
-  async function addReservation(dateKey, room, timeSlotIndex, name, note) {
+  async function addReservation(dateKey, room, timeSlotIndex, name, note, email) {
     if (hasConflict(dateKey, room, timeSlotIndex)) {
       return false;
     }
@@ -984,7 +1085,8 @@
       room,
       timeSlotIndex,
       name,
-      note: note || ""
+      note: note || "",
+      email: email || ""
     });
 
     reservations.push({
@@ -993,7 +1095,8 @@
       room,
       timeSlotIndex,
       name,
-      note: note || ""
+      note: note || "",
+      email: email || ""
     });
 
     return true;
@@ -1035,8 +1138,8 @@
           );
 
           if (existing) {
-            const roomClass = ROOM_CLASS_MAP[room] || "";
-            slotDiv.className = "slot booked " + roomClass;
+            const colorClass = getUserColorClassFromReservation(existing);
+            slotDiv.className = "slot booked " + colorClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
             slotDiv.appendChild(main);
@@ -1105,8 +1208,8 @@
 
           roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            const roomClass = ROOM_CLASS_MAP[room] || "";
-            item.className = "week-slot-item " + roomClass;
+            const colorClass = getUserColorClassFromReservation(r);
+            item.className = "week-slot-item " + colorClass;
 
             const timeSpan = document.createElement("span");
             timeSpan.className = "week-slot-time";
@@ -1308,7 +1411,7 @@
       let conflictCount = 0;
 
       if (repeatVal === "none") {
-        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal)) {
+        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal, currentUser.email || "")) {
           successCount++;
         } else {
           conflictCount++;
@@ -1327,7 +1430,7 @@
         const tempDate = new Date(baseDate);
         while (tempDate <= untilDate) {
           const key = formatDateKey(tempDate);
-          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal)) {
+          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal, currentUser.email || "")) {
             successCount++;
           } else {
             conflictCount++;
