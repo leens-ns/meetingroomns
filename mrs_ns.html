@@ -358,23 +358,7 @@
     .day-grid td.time-cell {
       font-weight: 600;
       background: #f9fafb;
-      white-space: normal;
-      padding-top: 4px;
-      padding-bottom: 4px;
-    }
-
-    .day-grid td.time-cell .time-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #111827;
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .day-grid td.time-cell .time-range {
-      font-size: 0.7rem;
-      color: #4b5563;
-      display: block;
+      white-space: nowrap;
     }
 
     .slot {
@@ -406,96 +390,6 @@
       font-size: 0.7rem;
       font-weight: 600;
       color: #1d4ed8;
-    }
-
-    /* 내 예약 / 다른 사람 예약 색상 구분 */
-    .slot.booked.my-reservation,
-    .week-slot-item.my-reservation {
-      background: #1e3a8a;
-      border-color: #1f2937;
-    }
-
-    .slot.booked.my-reservation span,
-    .week-slot-item.my-reservation span {
-      color: #f9fafb;
-    }
-
-    .slot.booked.other-reservation,
-    .week-slot-item.other-reservation {
-      background: #fffbeb;
-      border-color: #fef3c7;
-    }
-
-    .slot.booked.other-reservation span,
-    .week-slot-item.other-reservation span {
-      color: #92400e;
-    }
-
-    .legend-row.legend-my {
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .legend-row.legend-my .legend-item {
-      font-size: 0.7rem;
-    }
-
-    .legend-dot.my-res-dot {
-      background: #1e3a8a;
-      border-color: #1f2937;
-    }
-
-    .legend-dot.other-res-dot {
-      background: #fffbeb;
-      border-color: #fef3c7;
-    }
-
-    .toggle-myonly {
-      margin-left: auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.7rem;
-      color: #4b5563;
-      cursor: pointer;
-    }
-
-    .toggle-myonly input {
-      display: none;
-    }
-
-    .toggle-switch {
-      width: 32px;
-      height: 18px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      border: 1px solid #d1d5db;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 2px;
-      box-sizing: border-box;
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
-
-    .toggle-handle {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      background: #ffffff;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
-      transform: translateX(0);
-      transition: transform 0.15s ease;
-    }
-
-    .toggle-myonly input:checked + .toggle-switch {
-      background: #4f46e5;
-      border-color: #4338ca;
-    }
-
-    .toggle-myonly input:checked + .toggle-switch .toggle-handle {
-      transform: translateX(12px);
     }
 
     /* 사용자별 고유 색상 (이메일/이름 해시 기반) */
@@ -647,8 +541,6 @@
       font-weight: 600;
       background: #f9fafb;
       white-space: nowrap;
-      text-align: center;
-      vertical-align: middle;
     }
 
     .week-slot-list {
@@ -707,18 +599,6 @@
       margin-top: 6px;
       font-size: 0.7rem;
       color: #6b7280;
-    }
-
-    .legend-row.legend-combined {
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .legend-group-left,
-    .legend-group-right {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
     }
 
     .legend-item {
@@ -947,25 +827,15 @@
             </tbody>
           </table>
 
-          <div class="legend-row legend-combined">
-            <div class="legend-group-left">
-              <div class="legend-item">
-                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
-              </div>
+          <div class="legend-row">
+            <div class="legend-item">
+              <span class="legend-dot"></span> <span>예약 가능</span>
             </div>
-            <div class="legend-group-right">
-              <div class="legend-item">
-                <span class="legend-dot"></span> <span>예약 가능</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-dot booked"></span> <span>예약됨</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-dot disabled"></span> <span>예약 불가</span>
-              </div>
+            <div class="legend-item">
+              <span class="legend-dot booked"></span> <span>예약됨</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot disabled"></span> <span>예약 불가</span>
             </div>
           </div>
         </section>
@@ -999,22 +869,6 @@
               <!-- JS로 채움 -->
             </tbody>
           </table>
-
-          <div class="legend-row legend-my">
-            <div class="legend-item">
-              <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
-            </div>
-            <label class="toggle-myonly">
-              <span>내 예약만 보기</span>
-              <input type="checkbox" id="my-only-toggle" />
-              <span class="toggle-switch">
-                <span class="toggle-handle"></span>
-              </span>
-            </label>
-          </div>
         </section>
       </section>
     </main>
@@ -1069,18 +923,9 @@
     return USER_COLOR_CLASSES[idx];
   }
 
-  function isMyReservation(reservation) {
-    if (!currentUser || !reservation) return false;
-    const myEmail = currentUser.email || "";
-    const resEmail = reservation.email || "";
-    if (myEmail && resEmail && myEmail === resEmail) return true;
-    const myName = currentUser.name || "";
-    if (!resEmail && myName && reservation.name && myName === reservation.name) return true;
-    return false;
-  }
-
-  function getReservationColorClass(reservation) {
-    return isMyReservation(reservation) ? "my-reservation" : "other-reservation";
+  function getUserColorClassFromReservation(reservation) {
+    const key = reservation.email || reservation.name || "";
+    return getUserColorClassFromKey(key);
   }
 
 
@@ -1107,27 +952,12 @@
     "15:40~16:30"
   ];
 
-  const TIME_LABELS = [
-    "아침시간",
-    "1교시",
-    "2교시",
-    "3교시",
-    "4교시",
-    "5교시",
-    "6교시",
-    "점심시간",
-    "7교시",
-    "8교시",
-    "일과후"
-  ];
-
   // Firestore 연동용 예약 캐시
   let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note}
 
   let currentUser = null; // {name, email}
   let selectedDate = new Date();
   let weekBaseDate = new Date();
-  let showOnlyMine = false;
 
   // ---- 유틸 함수 ----
   function formatDateKey(date) {
@@ -1174,14 +1004,6 @@
     return day >= 1 && day <= 5; // 월~금만 허용
   }
 
-  function isConsultingBlocked(date, room) {
-    if (room !== "상담실") return false;
-    const cutoff = new Date(2026, 1, 28); // 2026-02-28
-    if (date > cutoff) return false;
-    const day = date.getDay(); // 0(일)~6(토)
-    return day === 4 || day === 5; // 목(4), 금(5)
-  }
-
   async function handleQuickReserve(room, timeIndex) {
     clearError();
 
@@ -1215,11 +1037,6 @@
       return;
     }
 
-    if (isConsultingBlocked(date, room)) {
-      showError("2026년 2월 28일까지는 목요일·금요일 상담실 예약이 불가합니다.");
-      return;
-    }
-
     if (await addReservation(dateKey, room, timeIndex, currentName, "", currentUser.email || "")) {
       await fetchReservations();
     } else {
@@ -1250,35 +1067,10 @@
   // ---- Firestore 연동 ----
   async function fetchReservations() {
     const snapshot = await db.collection("reservations").get();
-
-    const now = new Date();
-    const cutoff = new Date();
-    cutoff.setDate(now.getDate() - 14);
-    const cutoffKey = formatDateKey(cutoff);
-
-    const active = [];
-    const toDelete = [];
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const dateKey = data.date;
-      if (dateKey && dateKey < cutoffKey) {
-        toDelete.push(doc.ref);
-      } else {
-        active.push({
-          id: doc.id,
-          ...data
-        });
-      }
-    });
-
-    if (toDelete.length > 0) {
-      const batch = db.batch();
-      toDelete.forEach((ref) => batch.delete(ref));
-      await batch.commit();
-    }
-
-    reservations = active;
+    reservations = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
     renderDayView();
     renderWeekView();
   }
@@ -1327,24 +1119,15 @@
 
       const timeTd = document.createElement("td");
       timeTd.className = "time-cell";
-      const labelDiv = document.createElement("div");
-      labelDiv.className = "time-label";
-      labelDiv.textContent = TIME_LABELS[index];
-      const rangeDiv = document.createElement("div");
-      rangeDiv.className = "time-range";
-      rangeDiv.textContent = slot;
-      timeTd.appendChild(labelDiv);
-      timeTd.appendChild(rangeDiv);
+      timeTd.textContent = slot;
       tr.appendChild(timeTd);
 
       ROOMS.forEach((room) => {
         const td = document.createElement("td");
         const slotDiv = document.createElement("div");
 
-        const isBlockedConsult = isConsultingBlocked(selectedDate, room);
-
-        if (weekend || isBlockedConsult) {
-          // 토/일 또는 상담실 목/금(2026.2.28까지): 예약 불가
+        if (weekend) {
+          // 토/일: 항상 예약 불가
           slotDiv.className = "slot disabled";
           const main = document.createElement("span");
           main.textContent = "예약 불가";
@@ -1355,7 +1138,7 @@
           );
 
           if (existing) {
-            const colorClass = getReservationColorClass(existing);
+            const colorClass = getUserColorClassFromReservation(existing);
             slotDiv.className = "slot booked " + colorClass;
             const main = document.createElement("span");
             main.textContent = existing.name; // 예약자명만 표시
@@ -1414,11 +1197,7 @@
           .filter((r) => r.date === dateKey && r.room === room)
           .sort((a, b) => a.timeSlotIndex - b.timeSlotIndex);
 
-        const visibleReservations = showOnlyMine
-          ? roomReservations.filter((r) => isMyReservation(r))
-          : roomReservations;
-
-        if (visibleReservations.length === 0) {
+        if (roomReservations.length === 0) {
           const empty = document.createElement("div");
           empty.className = "empty-week-cell";
           empty.textContent = "-";
@@ -1427,9 +1206,9 @@
           const list = document.createElement("div");
           list.className = "week-slot-list";
 
-          visibleReservations.forEach((r) => {
+          roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            const colorClass = getReservationColorClass(r);
+            const colorClass = getUserColorClassFromReservation(r);
             item.className = "week-slot-item " + colorClass;
 
             const timeSpan = document.createElement("span");
@@ -1556,14 +1335,6 @@
     document.getElementById("login-btn").addEventListener("click", googleLogin);
     document.getElementById("logout-btn").addEventListener("click", googleLogout);
 
-    const myOnlyToggle = document.getElementById("my-only-toggle");
-    if (myOnlyToggle) {
-      myOnlyToggle.addEventListener("change", (e) => {
-        showOnlyMine = e.target.checked;
-        renderWeekView();
-      });
-    }
-
     document.getElementById("date-input").addEventListener("change", (e) => {
       const d = parseDateFromInput(e.target.value);
       if (d) {
@@ -1630,11 +1401,6 @@
 
       if (!isWeekday(baseDate)) {
         showError("예약은 월요일부터 금요일까지만 가능합니다.");
-        return;
-      }
-
-      if (roomVal === "상담실" && isConsultingBlocked(baseDate, roomVal)) {
-        showError("2026년 2월 28일까지는 목요일·금요일 상담실 예약이 불가합니다.");
         return;
       }
 
