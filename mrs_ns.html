@@ -358,7 +358,23 @@
     .day-grid td.time-cell {
       font-weight: 600;
       background: #f9fafb;
-      white-space: nowrap;
+      white-space: normal;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    .day-grid td.time-cell .time-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .day-grid td.time-cell .time-range {
+      font-size: 0.7rem;
+      color: #4b5563;
+      display: block;
     }
 
     .slot {
@@ -1091,6 +1107,20 @@
     "15:40~16:30"
   ];
 
+  const TIME_LABELS = [
+    "아침시간",
+    "1교시",
+    "2교시",
+    "3교시",
+    "4교시",
+    "5교시",
+    "6교시",
+    "점심시간",
+    "7교시",
+    "8교시",
+    "일과후"
+  ];
+
   // Firestore 연동용 예약 캐시
   let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note}
 
@@ -1144,6 +1174,14 @@
     return day >= 1 && day <= 5; // 월~금만 허용
   }
 
+  function isConsultingBlocked(date, room) {
+    if (room !== "상담실") return false;
+    const cutoff = new Date(2026, 1, 28); // 2026-02-28
+    if (date > cutoff) return false;
+    const day = date.getDay(); // 0(일)~6(토)
+    return day === 4 || day === 5; // 목(4), 금(5)
+  }
+
   async function handleQuickReserve(room, timeIndex) {
     clearError();
 
@@ -1177,6 +1215,11 @@
       return;
     }
 
+    if (isConsultingBlocked(date, room)) {
+      showError("2026년 2월 28일까지는 목요일·금요일 상담실 예약이 불가합니다.");
+      return;
+    }
+
     if (await addReservation(dateKey, room, timeIndex, currentName, "", currentUser.email || "")) {
       await fetchReservations();
     } else {
@@ -1207,10 +1250,35 @@
   // ---- Firestore 연동 ----
   async function fetchReservations() {
     const snapshot = await db.collection("reservations").get();
-    reservations = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(now.getDate() - 14);
+    const cutoffKey = formatDateKey(cutoff);
+
+    const active = [];
+    const toDelete = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateKey = data.date;
+      if (dateKey && dateKey < cutoffKey) {
+        toDelete.push(doc.ref);
+      } else {
+        active.push({
+          id: doc.id,
+          ...data
+        });
+      }
+    });
+
+    if (toDelete.length > 0) {
+      const batch = db.batch();
+      toDelete.forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+
+    reservations = active;
     renderDayView();
     renderWeekView();
   }
@@ -1259,15 +1327,24 @@
 
       const timeTd = document.createElement("td");
       timeTd.className = "time-cell";
-      timeTd.textContent = slot;
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "time-label";
+      labelDiv.textContent = TIME_LABELS[index];
+      const rangeDiv = document.createElement("div");
+      rangeDiv.className = "time-range";
+      rangeDiv.textContent = slot;
+      timeTd.appendChild(labelDiv);
+      timeTd.appendChild(rangeDiv);
       tr.appendChild(timeTd);
 
       ROOMS.forEach((room) => {
         const td = document.createElement("td");
         const slotDiv = document.createElement("div");
 
-        if (weekend) {
-          // 토/일: 항상 예약 불가
+        const isBlockedConsult = isConsultingBlocked(selectedDate, room);
+
+        if (weekend || isBlockedConsult) {
+          // 토/일 또는 상담실 목/금(2026.2.28까지): 예약 불가
           slotDiv.className = "slot disabled";
           const main = document.createElement("span");
           main.textContent = "예약 불가";
@@ -1553,6 +1630,11 @@
 
       if (!isWeekday(baseDate)) {
         showError("예약은 월요일부터 금요일까지만 가능합니다.");
+        return;
+      }
+
+      if (roomVal === "상담실" && isConsultingBlocked(baseDate, roomVal)) {
+        showError("2026년 2월 28일까지는 목요일·금요일 상담실 예약이 불가합니다.");
         return;
       }
 
