@@ -406,13 +406,13 @@
 
     .slot.booked.other-reservation,
     .week-slot-item.other-reservation {
-      background: #e5e7eb;
-      border-color: #d1d5db;
+      background: #fef3c7;
+      border-color: #facc15;
     }
 
     .slot.booked.other-reservation span,
     .week-slot-item.other-reservation span {
-      color: #111827;
+      color: #92400e;
     }
 
     .legend-row.legend-my {
@@ -432,8 +432,8 @@
     }
 
     .legend-dot.other-res-dot {
-      background: #e5e7eb;
-      border-color: #d1d5db;
+      background: #fef3c7;
+      border-color: #facc15;
     }
 
     .toggle-myonly {
@@ -631,6 +631,7 @@
       font-weight: 600;
       background: #f9fafb;
       white-space: nowrap;
+      text-align: center;
     }
 
     .week-slot-list {
@@ -689,6 +690,18 @@
       margin-top: 6px;
       font-size: 0.7rem;
       color: #6b7280;
+    }
+
+    .legend-row.legend-combined {
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .legend-group-left,
+    .legend-group-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .legend-item {
@@ -917,24 +930,25 @@
             </tbody>
           </table>
 
-          <div class="legend-row">
-            <div class="legend-item">
-              <span class="legend-dot"></span> <span>예약 가능</span>
+          <div class="legend-row legend-combined">
+            <div class="legend-group-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
             </div>
-            <div class="legend-item">
-              <span class="legend-dot booked"></span> <span>예약됨</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot disabled"></span> <span>예약 불가</span>
-            </div>
-          </div>
-
-          <div class="legend-row legend-my">
-            <div class="legend-item">
-              <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+            <div class="legend-group-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>예약 가능</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span> <span>예약됨</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot disabled"></span> <span>예약 불가</span>
+              </div>
             </div>
           </div>
         </section>
