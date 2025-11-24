@@ -128,6 +128,13 @@
       box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
     }
 
+    .btn-submit {
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 10px 0;
+      justify-content: center;
+    }
+
     .btn-outline {
       border-color: var(--border);
       color: var(--text-main);
@@ -372,9 +379,11 @@
     }
 
     .day-grid td.time-cell .time-range {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: #4b5563;
       display: block;
+      word-break: break-all;
+      overflow-wrap: anywhere;
     }
 
     .slot {
@@ -484,7 +493,9 @@
     .week-grid td.room-cell {
       font-weight: 600;
       background: #f9fafb;
-      white-space: nowrap;
+      white-space: normal;
+      text-align: center;
+      vertical-align: middle;
     }
 
     .week-slot-list {
@@ -538,11 +549,21 @@
 
     .legend-row {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       gap: 10px;
       margin-top: 6px;
       font-size: 0.7rem;
       color: #6b7280;
+      flex-wrap: wrap;
+    }
+
+    .legend-row .legend-left,
+    .legend-row .legend-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .legend-item {
@@ -618,14 +639,41 @@
       }
 
       header.app-header h1 {
-        font-size: 1.8rem;
+        font-size: clamp(0.9rem, 4vw, 1.4rem);
+        white-space: normal;
       }
 
       .auth-box {
         align-self: stretch;
         justify-content: space-between;
       }
+
+      /* 모바일에서 표/텍스트가 화면을 넘지 않도록 축소 */
+      .day-grid,
+      .week-grid {
+        font-size: 0.7rem;
+      }
+
+      .day-grid th,
+      .day-grid td,
+      .week-grid th,
+      .week-grid td {
+        padding: 4px 3px;
+      }
+
+      .day-grid td.time-cell .time-label {
+        font-size: 0.66rem;
+      }
+
+      .day-grid td.time-cell .time-range {
+        font-size: 0.6rem;
+      }
+
+      .slot span {
+        font-size: 0.64rem;
+      }
     }
+
   
     /* 내 예약 / 다른 사람 예약 색상 */
     .slot.booked.my-reservation,
@@ -840,7 +888,7 @@
             <div class="alert-text" id="form-error-text"></div>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">
+          <button type="submit" class="btn btn-primary btn-submit" style="width:100%; margin-top:6px;">
             예약 등록
           </button>
         </form>
@@ -883,11 +931,21 @@
           </table>
 
           <div class="legend-row">
-            <div class="legend-item">
-              <span class="legend-dot"></span> <span>예약 가능</span>
+            <div class="legend-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
             </div>
-            <div class="legend-item">
-              <span class="legend-dot disabled"></span> <span>예약 불가</span>
+            <div class="legend-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>예약 가능</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot disabled"></span> <span>예약 불가</span>
+              </div>
             </div>
           </div>
         </section>
@@ -1626,23 +1684,29 @@
   }
 
   // ---- 인증 상태 변화 감지 ----
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      const email = user.email || "";
-      const name = user.displayName || email.split("@")[0];
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const email = user.email || "";
+    const name = user.displayName || email.split("@")[0];
 
-      if (!email.endsWith("@nsworld.net")) {
-        alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
-        auth.signOut();
-        return;
-      }
-
-      currentUser = { name, email };
-    } else {
-      currentUser = null;
+    if (!email.endsWith("@nsworld.net")) {
+      alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
+      await auth.signOut();
+      return;
     }
-    updateAuthUI();
-  });
+
+    currentUser = { name, email };
+  } else {
+    currentUser = null;
+  }
+
+  updateAuthUI();
+
+  // 🔽 로그인/로그아웃 상태가 바뀔 때마다
+  //     최신 사용자 정보 기준으로 다시 가져와서 다시 그리기
+  await fetchReservations();
+});
+
 
   // ---- 시작 ----
   document.addEventListener("DOMContentLoaded", async () => {
@@ -1650,7 +1714,6 @@
     initDateDefaults();
     updateAuthUI();
     attachEventHandlers();
-    await fetchReservations();
   });
 </script>
 </body>
