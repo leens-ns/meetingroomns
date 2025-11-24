@@ -927,7 +927,7 @@
             </label>
             <label style="font-size:0.78rem; color:#4b5563;">
               <input type="checkbox" id="block-room-all-day" style="margin-right:4px;">
-              Set <strong>all time slots</strong> for this room on this date as unavailable
+              이 날짜의 해당 Room <strong>전체 Time</strong>을 Unavailable로 설정
             </label>
           </div>
 
@@ -938,12 +938,12 @@
             <div class="inline-fields">
               <select id="repeat-select" class="field-select">
                 <option value="none">No repeat</option>
-                <option value="weekly">Repeat weekly (same weekday)</option>
+                <option value="weekly">Repeat weekly on the same weekday</option>
               </select>
               <input type="date" id="repeat-until" class="field-input" />
             </div>
             <div class="helper-text">
-              If you set repeat, the same weekday / time / room will be reserved until the <strong>end date</strong>.
+              If you set a repeat option, the reservation will be repeated with the same weekday, time, and room until the <strong>end date</strong>.
             </div>
           </div>
 
@@ -973,7 +973,7 @@
         </form>
 
         <p class="helper-text" style="margin-top:10px;">
-          ※ If there is already a reservation for the same date / time / room, <strong>double booking will be automatically blocked</strong>.
+          ※ 같은 날짜・Time・Room에 이미 예약이 있는 경우, <strong>중복 예약이 자동으로 차단</strong>됩니다.
         </p>
       </section>
 
@@ -1304,7 +1304,7 @@
     }
 
     if (isRoomTimeBlocked(date, room, timeIndex)) {
-      showError("This room/time slot is currently unavailable for reservation.");
+      showError("해당 Room/Time대는 현재 예약이 불가한 Time입니다.");
       return;
     }
 
@@ -1314,7 +1314,7 @@
       if (await addReservation(dateKey, room, timeIndex, blockName, "", null, true)) {
         await fetchReservations();
       } else {
-        showError("A reservation or unavailable status already exists for this time slot.");
+        showError("해당 Time에는 이미 예약 또는 Unavailable가 설정되어 있습니다.");
       }
       return;
     }
@@ -1323,7 +1323,7 @@
     if (await addReservation(dateKey, room, timeIndex, currentName, "", null, false)) {
       await fetchReservations();
     } else {
-      showError("There is already a reservation for the selected time slot.");
+      showError("선택한 Time에는 이미 예약이 존재합니다.");
     }
   }
 
@@ -1338,7 +1338,7 @@
     const date = new Date(selectedDate);
     const dateKey = formatDateKey(date);
     if (!isWeekday(date)) {
-      showError("Unavailable settings can only be applied from Monday to Friday.");
+      showError("Unavailable 설정은 월요일부터 금요일까지만 가능합니다.");
       return;
     }
 
@@ -1393,7 +1393,7 @@
       if (changed > 0) {
         await fetchReservations();
       } else {
-        showError("There are no additional time slots that can be set as unavailable.");
+        showError("추가로 Unavailable로 설정할 수 있는 Time이 없습니다.");
       }
     }
   }
@@ -1488,7 +1488,7 @@ async function handleWeekItemClick(reservation) {
     // Unavailable(차단) 해제 처리
     if (reservation.blocked) {
       if (!amAdmin) {
-        showError("Only administrators can clear unavailable time slots.");
+        showError("Unavailable Time은 관리자만 해제할 수 있습니다.");
         return;
       }
 
@@ -1500,7 +1500,7 @@ async function handleWeekItemClick(reservation) {
 
         if (groupReservations.length > 1) {
           const applyAllBlock = confirm(
-            `This time slot is part of a repeated unavailable schedule.\n\n[OK]: Clear all unavailable repeats (${groupReservations.length} items)\n[Cancel]: Clear only this one`
+            `이 일정은 반복 설정된 Unavailable Time입니다.\n\n[확인]: Repeat 불가 전체 (${groupReservations.length}건) 해제\n[취소]: 이 일정만 해제`
           );
 
           if (applyAllBlock) {
@@ -1514,7 +1514,7 @@ async function handleWeekItemClick(reservation) {
       }
 
       // 단일 Unavailable 또는 그룹의 마지막 한 건만 남은 경우
-      const okUnblock = confirm("Do you want to clear this unavailable time?\nAfter clearing, reservations will be possible again.");
+      const okUnblock = confirm("이 Unavailable Time을 해제하시겠습니까?\n해제 후에는 다시 예약이 가능해집니다.");
       if (!okUnblock) return;
       await deleteReservation(reservation.id);
       await fetchReservations();
@@ -1555,7 +1555,7 @@ async function handleWeekItemClick(reservation) {
           return;
         } else if (amAdmin) {
           // 관리자 + 타인 예약: 한 번 확인 후 취소
-          const ok = confirm("Do you want to cancel this reservation?");
+          const ok = confirm("이 예약을 취소하시겠습니까?");
           if (!ok) return;
           await deleteReservation(reservation.id);
           await fetchReservations();
@@ -1571,7 +1571,7 @@ async function handleWeekItemClick(reservation) {
         return;
       } else if (amAdmin) {
         // 관리자 + 타인 단일 예약: 한 번 확인 후 취소
-        const ok = confirm("Do you want to cancel this reservation?");
+        const ok = confirm("이 예약을 취소하시겠습니까?");
         if (!ok) return;
         await deleteReservation(reservation.id);
         await fetchReservations();
@@ -1595,7 +1595,7 @@ async function deleteReservationsBulk(filterFn, label) {
 
   async function handleBulkDayCancel() {
     if (!currentUser || !isAdmin()) {
-      showError(""Clear daily reservations" can only be used by administrators.");
+      showError("Clear daily reservations는 관리자만 사용할 수 있습니다.");
       return;
     }
     const dateKey = formatDateKey(selectedDate);
@@ -1604,7 +1604,7 @@ async function deleteReservationsBulk(filterFn, label) {
 
   async function handleBulkWeekCancel() {
     if (!currentUser || !isAdmin()) {
-      showError(""Clear weekly reservations" can only be used by administrators.");
+      showError("Clear weekly reservations는 관리자만 사용할 수 있습니다.");
       return;
     }
     const { monday, sunday } = getWeekRange(weekBaseDate);
@@ -1970,7 +1970,7 @@ function syncDateInputs() {
     if (blockModeBtn) {
       blockModeBtn.addEventListener("click", () => {
         if (!isAdmin()) {
-          showError(""Set unavailable dates" can only be used by administrators.");
+          showError("Set unavailable dates은 관리자만 사용할 수 있습니다.");
           return;
         }
         blockMode = !blockMode;
@@ -2086,7 +2086,7 @@ function syncDateInputs() {
       const isBlockModeActive = blockMode && isAdmin();
 
       if (!dateVal || !roomVal) {
-        showError("Please select both a date and a room.");
+        showError("Please select both the date and room.");
         return;
       }
 
@@ -2105,7 +2105,7 @@ function syncDateInputs() {
       } else {
         // Unavailable 모드: Time 여러 개 선택 가능, 또는 전체 Time 선택
         if (!blockAllDay && selectedTimeIndexes.length === 0) {
-          showError("When setting unavailable time, please select at least one time slot or choose to block all time slots.");
+          showError("In unavailable-date mode, please select at least one time slot or choose to block all time slots for the day.");
           return;
         }
       }
@@ -2157,7 +2157,7 @@ function syncDateInputs() {
           // 주간 Repeat 불가
           const untilDate = parseDateFromInput(repeatUntilVal);
           if (!untilDate) {
-            showError("Please select an end date for the repeat setting.");
+            showError("Please select an end date for the repeat option.");
             return;
           }
           if (untilDate < baseDate) {
@@ -2199,7 +2199,7 @@ function syncDateInputs() {
         const timeIndex = selectedTimeIndexes[0];
 
         if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
-          showError("This room/time slot is currently unavailable for reservation.");
+          showError("해당 Room/Time대는 현재 예약이 불가한 Time입니다.");
           return;
         }
 
@@ -2212,7 +2212,7 @@ function syncDateInputs() {
         } else if (repeatVal === "weekly") {
           const untilDate = parseDateFromInput(repeatUntilVal);
           if (!untilDate) {
-            showError("Please select an end date for the repeat setting.");
+            showError("Please select an end date for the repeat option.");
             return;
           }
           if (untilDate < baseDate) {
@@ -2236,9 +2236,9 @@ function syncDateInputs() {
       }
 
       if (conflictCount > 0 && successCount === 0) {
-        showError("A reservation or unavailable status already exists with the selected conditions, so it cannot be registered.");
+        showError("선택한 조건으로 이미 예약 또는 Unavailable가 존재하여 등록할 수 없습니다.");
       } else if (conflictCount > 0) {
-        showError(`Some time slots already had reservations (or were unavailable) and were skipped; ${successCount} slots were successfully registered.`);
+        showError(`일부 Time은 이미 예약(또는 Unavailable)이 존재하여 제외되었으며, ${successCount}건이 등록되었습니다.`);
       }
 
       if (successCount > 0) {
@@ -2259,7 +2259,7 @@ function syncDateInputs() {
       const name = user.displayName || email.split("@")[0];
 
       if (!email.endsWith("@nsworld.net")) {
-        alert("Only @nsworld.net domain accounts can be used.");
+        alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
         await auth.signOut();
         return;
       }
