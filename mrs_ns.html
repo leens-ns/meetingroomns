@@ -1684,23 +1684,35 @@
   }
 
   // ---- 인증 상태 변화 감지 ----
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
       const email = user.email || "";
       const name = user.displayName || email.split("@")[0];
 
       if (!email.endsWith("@nsworld.net")) {
         alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
-        auth.signOut();
+        await auth.signOut();
         return;
       }
 
+      // 로그인 상태
       currentUser = { name, email };
+      updateAuthUI();
+
+      // 로그인된 상태에서만 Firestore에서 예약 불러오기
+      await fetchReservations();
     } else {
+      // 로그아웃 상태
       currentUser = null;
+      updateAuthUI();
+
+      // 로그아웃 시에는 예약 데이터 비우고 화면도 초기화
+      reservations = [];
+      renderDayView();
+      renderWeekView();
     }
-    updateAuthUI();
   });
+
 
   // ---- 시작 ----
   document.addEventListener("DOMContentLoaded", async () => {
@@ -1708,7 +1720,10 @@
     initDateDefaults();
     updateAuthUI();
     attachEventHandlers();
-    await fetchReservations();
+
+    // 초기 화면에서도 기본 표 구조가 보이도록 렌더링
+    renderDayView();
+    renderWeekView();
   });
 </script>
 </body>
