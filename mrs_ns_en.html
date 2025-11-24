@@ -1,0 +1,1665 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Namsung Elementary School Meeting Room Reservation System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card-bg: #ffffff;
+      --accent: #2563eb;
+      --accent-soft: #e0ecff;
+      --accent-strong: #1d4ed8;
+      --border: #d4d7e5;
+      --text-main: #1f2933;
+      --text-sub: #6b7280;
+      --danger: #dc2626;
+      --slot-free: #f9fafb;
+      --slot-booked: #e0f2fe;
+      --slot-booked-border: #60a5fa;
+      --room-gaonnuri-bg: #fee2e2;
+      --room-gaonnuri-border: #fca5a5;
+      --room-gyomusil-bg: #dcfce7;
+      --room-gyomusil-border: #86efac;
+      --room-gyoyuk-bg: #e0f2fe;
+      --room-gyoyuk-border: #60a5fa;
+      --room-sangdam-bg: #fef3c7;
+      --room-sangdam-border: #facc15;
+      --room-oxford-bg: #f5d0fe;
+      --room-oxford-border: #e879f9;
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e0ebff 0, #f5f7fb 45%, #fdfdfd 100%);
+      color: var(--text-main);
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 16px 32px;
+    }
+
+    header.app-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    header.app-header h1 {
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      font-size: clamp(1.2rem, 3vw, 2.2rem);
+      color: #0f172a;
+      text-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header.app-header h1 .logo-img {
+      height: 28px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+      backdrop-filter: blur(8px);
+    }
+
+    .user-label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .btn {
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      background: #fff;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-outline {
+      border-color: var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #eef2ff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .pill {
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1.4fr);
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-header small {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span.required::after {
+      content: " *";
+      color: var(--danger);
+    }
+
+    .field-label small {
+      font-size: 0.7rem;
+    }
+
+    .field-input,
+    .field-select,
+    .field-text {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 7px 9px;
+      font-size: 0.85rem;
+      outline: none;
+      background: #f9fafb;
+      transition: all 0.12s ease;
+    }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-text:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+      background: #ffffff;
+    }
+
+    .field-text[readonly] {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .inline-fields {
+      display: flex;
+      gap: 8px;
+    }
+
+    .inline-fields > * {
+      flex: 1;
+    }
+
+    .helper-text {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: -2px;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .views-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .view-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .view-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-title span.tag {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+
+    .date-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      padding: 2px 4px;
+      background: #f3f4ff;
+      border: 1px solid #c7d2fe;
+    }
+
+    .date-nav button {
+      border: none;
+      background: transparent;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      border-radius: 999px;
+    }
+
+    .date-nav button:hover {
+      background: rgba(79, 70, 229, 0.08);
+    }
+
+    .date-display {
+      padding: 0 6px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .day-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      table-layout: fixed;
+    }
+
+    .day-grid thead {
+      background: #eef2ff;
+    }
+
+    .day-grid th,
+    .day-grid td {
+      border: 1px solid #e5e7eb;
+      padding: 5px 6px;
+      text-align: center;
+    }
+
+    .day-grid th {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .day-grid td.time-cell {
+      font-weight: 600;
+      background: #f9fafb;
+      white-space: normal;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    .day-grid td.time-cell .time-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .day-grid td.time-cell .time-range {
+      font-size: 0.7rem;
+      color: #4b5563;
+      display: block;
+    }
+
+    .slot {
+      min-height: 26px;
+      border-radius: 999px;
+      background: var(--slot-free);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 4px;
+    }
+
+    .slot.free span {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .slot.free {
+      cursor: pointer;
+    }
+
+    .slot.booked {
+      background: var(--slot-booked);
+      border: 1px solid var(--slot-booked-border);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15);
+    }
+
+    .slot.booked span {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    .slot-booked-meta {
+      display: block;
+      font-size: 0.7rem;
+      color: #4b5563;
+    }
+
+    .slot.disabled {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+
+    /* My vs Other reservation coloring */
+    .slot.booked.my-reservation,
+    .week-slot-item.my-reservation {
+      background: #dbeafe;
+      border-color: #1d4ed8;
+    }
+
+    .slot.booked.my-reservation span,
+    .week-slot-item.my-reservation span {
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    .slot.booked.other-reservation,
+    .week-slot-item.other-reservation {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+    }
+
+    .slot.booked.other-reservation span,
+    .week-slot-item.other-reservation span {
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .legend-dot.my-res-dot {
+      background: #dbeafe;
+      border-color: #1d4ed8;
+    }
+
+    .legend-dot.other-res-dot {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+    }
+
+
+    .slot.disabled span {
+      font-size: 0.7rem;
+      color: #b91c1c;
+      font-weight: 500;
+    }
+
+
+    .slot.booked.room-gaonnuri,
+    .week-slot-item.room-gaonnuri {
+      background: var(--room-gaonnuri-bg);
+      border-color: var(--room-gaonnuri-border);
+    }
+
+    .slot.booked.room-gyomusil,
+    .week-slot-item.room-gyomusil {
+      background: var(--room-gyomusil-bg);
+      border-color: var(--room-gyomusil-border);
+    }
+
+    .slot.booked.room-gyoyuk,
+    .week-slot-item.room-gyoyuk {
+      background: var(--room-gyoyuk-bg);
+      border-color: var(--room-gyoyuk-border);
+    }
+
+    .slot.booked.room-sangdam,
+    .week-slot-item.room-sangdam {
+      background: var(--room-sangdam-bg);
+      border-color: var(--room-sangdam-border);
+    }
+
+    .slot.booked.room-oxford,
+    .week-slot-item.room-oxford {
+      background: var(--room-oxford-bg);
+      border-color: var(--room-oxford-border);
+    }
+
+    .week-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      table-layout: fixed;
+    }
+
+    .week-grid thead {
+      background: #f3f4ff;
+    }
+
+    .week-grid th,
+    .week-grid td {
+      border: 1px solid #e5e7eb;
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+
+    .day-grid th,
+    .day-grid td,
+    .week-grid th,
+    .week-grid td {
+      word-break: break-all;
+    }
+
+    .week-slot-time,
+    .week-slot-name {
+      word-break: break-all;
+    }
+
+    .week-grid th {
+      font-weight: 600;
+      color: #374151;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .week-grid td.room-cell {
+      font-weight: 600;
+      background: #f9fafb;
+      white-space: normal;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .week-slot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .week-slot-item {
+      border-radius: 10px;
+      padding: 3px 6px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .week-slot-time {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1d4ed8;
+      text-align: center;
+      width: 100%;
+    }
+
+    .week-slot-name {
+      font-size: 0.7rem;
+      color: #374151;
+      text-align: center;
+      width: 100%;
+    }
+
+    .week-slot-note {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .empty-week-cell {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .legend-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 0.7rem;
+      color: #6b7280;
+      flex-wrap: wrap;
+    }
+
+    .legend-row-left,
+    .legend-row-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+
+    .legend-dot.booked {
+      background: var(--slot-booked);
+      border-color: var(--slot-booked-border);
+    }
+
+    .legend-dot.disabled {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .alert {
+      font-size: 0.75rem;
+      border-radius: 10px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-icon {
+      font-size: 0.9rem;
+      line-height: 1;
+      margin-top: 1px;
+    }
+
+    .alert-text {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .layout-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    
+    @media (max-width: 640px) {
+      .app-shell {
+        padding: 12px 10px 24px;
+      }
+
+      header.app-header h1 {
+        font-size: 1.4rem;
+      }
+
+      header.app-header h1 .logo-img {
+        height: 22px;
+      }
+
+      .layout-main {
+        gap: 12px;
+      }
+
+      .card {
+        padding: 12px 10px 14px;
+      }
+
+      .day-grid,
+      .week-grid {
+        font-size: 0.72rem;
+      }
+
+      .day-grid th,
+      .day-grid td,
+      .week-grid th,
+      .week-grid td {
+        padding: 4px 3px;
+      }
+
+      .view-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .auth-box {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .auth-box > div:first-child {
+        flex: 1 1 100%;
+      }
+    }
+
+
+    @media (max-width: 640px) {
+      header.app-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header.app-header h1 {
+        font-size: 1.35rem;
+        white-space: normal;
+      }
+
+      .auth-box {
+        align-self: stretch;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1><img src="https://nisb.kr/plugins/custom_plugin/simple_page/assets/img/branding/logo4.png?date_ver=2025-11" alt="남성초 로고" class="logo-img" />Namsung Elementary School Meeting Room Reservation System</h1>
+      <div class="auth-box">
+        <div>
+          <div class="user-label">
+            <span id="auth-status">Sign-in required</span>
+          </div>
+          <div class="user-name" id="auth-user-name">Please sign in with your @nsworld.net account</div>
+        </div>
+        <div>
+          <button id="login-btn" class="btn btn-primary">Sign in with Google</button>
+          <button id="logout-btn" class="btn btn-outline hidden">Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout-main">
+      <!-- 예약 폼 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Create Reservation</h2>
+          <span class="badge">@nsworld.net only</span>
+        </div>
+
+        <div id="auth-alert" class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-text">
+            To make a reservation, please sign in first with your <strong>@nsworld.net</strong> Google account.
+          </div>
+        </div>
+
+        <form id="reservation-form">
+          <div class="field-group">
+            <label class="field-label">
+              <span class="required">Reservation date</span>
+            </label>
+            <input type="date" id="date-input" class="field-input" required />
+          </div>
+
+          <div class="inline-fields">
+            <div class="field-group">
+              <label class="field-label">
+                <span class="required">Room</span>
+              </label>
+              <select id="room-select" class="field-select" required>
+                <option value="">Select</option>
+                <option value="가온누리">가온누리</option>
+                <option value="교무실">교무실</option>
+                <option value="교육문화관">교육문화관</option>
+                <option value="상담실">상담실</option>
+                <option value="옥스퍼드 교실">옥스퍼드 교실</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">
+                <span class="required">Time</span>
+              </label>
+              <select id="time-select" class="field-select" required>
+                <option value="">Select</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>Repeat</span>
+            </label>
+            <div class="inline-fields">
+              <select id="repeat-select" class="field-select">
+                <option value="none">No repeat</option>
+                <option value="weekly">Repeat weekly (same weekday)</option>
+              </select>
+              <input type="date" id="repeat-until" class="field-input" />
+            </div>
+            <div class="helper-text">
+              Repeat을 설정하는 경우, <strong>종료일</strong>까지 같은 요일・시간・공간으로 예약됩니다.
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>Reserver name</span>
+              <small>Automatically linked with signed-in account</small>
+            </label>
+            <input type="text" id="reserver-name" class="field-text" readonly placeholder="Filled automatically after sign-in." />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>Note (optional)</span>
+            </label>
+            <input type="text" id="note-input" class="field-input" placeholder="You may write the purpose or meeting title." />
+          </div>
+
+          <div id="form-error" class="alert alert-error hidden">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-text" id="form-error-text"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">
+            Submit reservation
+          </button>
+        </form>
+
+        <p class="helper-text" style="margin-top:10px;">
+          ※ If there is already a reservation for the same date, time, and room, <strong>double booking is automatically blocked</strong>.
+        </p>
+      </section>
+
+      <!-- 보기 영역: 위쪽 Daily reservations / 아래쪽 Weekly reservations -->
+      <section class="views-column">
+        <!-- Daily reservations -->
+        <section class="card">
+          <div class="view-title-row">
+            <div class="view-title">
+              <span>Daily reservations</span>
+              <span class="tag">Based on selected date</span>
+            </div>
+            <div class="date-nav">
+              <button type="button" id="prev-day">◀</button>
+              <span class="date-display" id="day-display"></span>
+              <button type="button" id="next-day">▶</button>
+            </div>
+          </div>
+
+          <table class="day-grid" id="day-grid">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>가온누리</th>
+                <th>교무실</th>
+                <th>교육문화관</th>
+                <th>상담실</th>
+                <th>옥스퍼드 교실</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS로 채움 -->
+            </tbody>
+          </table>
+
+          <div class="legend-row">
+            <div class="legend-row-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>My reservations</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>Others</span>
+              </div>
+            </div>
+            <div class="legend-row-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span> <span>예약됨</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot disabled"></span> <span>Unavailable</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Weekly reservations -->
+        <section class="card">
+          <div class="view-title-row">
+            <div class="view-title">
+              <span>Weekly reservations</span>
+              <span class="tag">Monday to Friday</span>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+              <div class="date-nav">
+                <button type="button" id="prev-week">◀</button>
+                <span class="date-display" id="week-display"></span>
+                <button type="button" id="next-week">▶</button>
+              </div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#4b5563;">
+                <span>Show only my reservations</span>
+                <input type="checkbox" id="my-week-only-toggle" style="transform:scale(1.1);" />
+              </label>
+            </div>
+          </div>
+
+          <table class="week-grid" id="week-grid">
+            <thead>
+              <tr>
+                <th>Room</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS로 채움 -->
+            </tbody>
+          </table>
+          <div class="legend-row" style="margin-top:8px;">
+            <div class="legend-row-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>My reservations</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>Others</span>
+              </div>
+            </div>
+            <div class="legend-row-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>Available 없음</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span> <span>예약 있음</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase 설정
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvlHnsZJ1kFBw7LXTtwlheShJk96yH960",
+    authDomain: "namsung-meeting-room-7811f.firebaseapp.com",
+    projectId: "namsung-meeting-room-7811f",
+    storageBucket: "namsung-meeting-room-7811f.firebasestorage.app",
+    messagingSenderId: "863278514186",
+    appId: "1:863278514186:web:827dfd1ffc8947918e1ff3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
+
+<script>
+  // ---- 상수 정의 ----
+  const ROOMS = ["가온누리", "교무실", "교육문화관", "상담실", "옥스퍼드 교실"];
+
+  const ROOM_CLASS_MAP = {
+    "가온누리": "room-gaonnuri",
+    "교무실": "room-gyomusil",
+    "교육문화관": "room-gyoyuk",
+    "상담실": "room-sangdam",
+    "옥스퍼드 교실": "room-oxford"
+  };
+
+
+  const TIME_SLOTS = [
+    "08:30~08:55",
+    "09:00~09:40",
+    "09:45~10:25",
+    "10:30~11:10",
+    "11:15~11:55",
+    "12:00~12:40",
+    "12:40~13:25",
+    "13:30~14:10",
+    "14:15~14:55",
+    "15:00~15:40",
+    "15:40~16:30"
+  ];
+
+
+  const TIME_LABELS = [
+    "Morning",
+    "Period 1",
+    "Period 2",
+    "Period 3",
+    "Period 4",
+    "Period 5",
+    "Lunch",
+    "Period 6",
+    "Period 7",
+    "Period 8",
+    "After school"
+  ];
+
+  // Firestore 연동용 예약 캐시
+  let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note}
+
+  let currentUser = null; // {name, email}
+  let selectedDate = new Date();
+  let weekBaseDate = new Date();
+  let weekShowMyOnly = false;
+
+  // ---- 유틸 함수 ----
+  function formatDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function parseDateFromInput(value) {
+    if (!value) return null;
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function formatKoreanDate(date) {
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    const w = dayNames[date.getDay()];
+    return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")} (${w})`;
+  }
+
+  function getWeekRange(date) {
+    const base = new Date(date);
+    const day = base.getDay(); // 0(일)~6(토)
+    const diffToMonday = (day + 6) % 7;
+    const monday = new Date(base);
+    monday.setDate(base.getDate() - diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { monday, sunday };
+  }
+
+  function hasConflict(dateKey, room, timeSlotIndex) {
+    return reservations.some(
+      (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === timeSlotIndex
+    );
+  }
+
+  function isWeekday(date) {
+    const day = date.getDay(); // 0:일 ~ 6:토
+    return day >= 1 && day <= 5; // 월~금만 허용
+  }
+
+
+  function isConsultingBlocked(date, room) {
+    if (room !== "상담실") return false;
+    const cutoff = new Date(2026, 1, 28); // 2026-02-28
+    if (date > cutoff) return false;
+    const day = date.getDay(); // 0(일)~6(토)
+    return day === 4 || day === 5; // 목(4), 금(5)
+  }
+
+  function isRoomTimeBlocked(date, room, timeSlotIndex) {
+    const day = date.getDay(); // 0(일)~6(토)
+
+    // 1) 상담실: 기존 규칙 (2026.2.28까지 목/금 전체 시간대)
+    if (isConsultingBlocked(date, room)) {
+      return true;
+    }
+
+    // 2) 옥스퍼드 교실: 매일 점심시간(12:40~13:25, TIME_LABELS index 6) Unavailable
+    if (room === "옥스퍼드 교실" && timeSlotIndex === 6) {
+      return true;
+    }
+
+    // 3) 교무실: 월, 금요일 7, 8교시 Unavailable
+    // 7교시: index 8, 8교시: index 9
+    if (room === "교무실" && (day === 1 || day === 5) && (timeSlotIndex === 8 || timeSlotIndex === 9)) {
+      return true;
+    }
+
+    // 4) 가온누리: 2026.2.28까지 월, 화, 금요일 3,4,5,6교시 Unavailable
+    // 3교시: index 3, 4교시: 4, 5교시: 5, 6교시: 7
+    if (room === "가온누리") {
+      const cutoffGaon = new Date(2026, 1, 28); // 2026-02-28
+      if (date <= cutoffGaon &&
+          (day === 1 || day === 2 || day === 5) &&
+          ([3,4,5,7].includes(timeSlotIndex))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async function handleQuickReserve(room, timeIndex) {
+    clearError();
+
+    if (!currentUser) {
+      showError("Please sign in with your @nsworld.net account first.");
+      return;
+    }
+
+    const date = new Date(selectedDate);
+    const dateKey = formatDateKey(date);
+    const existing = reservations.find(
+      (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === timeIndex
+    );
+
+    const currentName = currentUser.name || currentUser.email;
+
+    // 이미 예약된 상태라면: 본인 예약만 취소 가능
+    if (existing) {
+      if (existing.name !== currentName) {
+        showError("You cannot cancel another user's reservation.");
+        return;
+      }
+      await deleteReservation(existing.id);
+      await fetchReservations();
+      return;
+    }
+
+    // 비어 있는 상태라면: 새로 예약 (월~금만)
+    if (!isWeekday(date)) {
+      showError("Reservations are only available from Monday to Friday.");
+      return;
+    }
+
+    if (isRoomTimeBlocked(date, room, timeIndex)) {
+      showError("This room and time slot is currently unavailable for reservation.");
+      return;
+    }
+
+    if (await addReservation(dateKey, room, timeIndex, currentName, "")) {
+      await fetchReservations();
+    } else {
+      showError("There is already a reservation at the selected time.");
+    }
+  }
+
+
+  async function handleWeekItemClick(reservation) {
+    clearError();
+
+    if (!currentUser) {
+      showError("Please sign in with your @nsworld.net account first.");
+      return;
+    }
+
+    const currentName = currentUser.name || currentUser.email;
+
+    if (reservation.name !== currentName) {
+      showError("You cannot cancel another user's reservation.");
+      return;
+    }
+
+    await deleteReservation(reservation.id);
+    await fetchReservations();
+  }
+
+  // ---- Firestore 연동 ----
+  async function fetchReservations() {
+    const snapshot = await db.collection("reservations").get();
+
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(now.getDate() - 14);
+    const cutoffKey = formatDateKey(cutoff);
+
+    const active = [];
+    const toDelete = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateKey = data.date;
+      if (dateKey && dateKey < cutoffKey) {
+        toDelete.push(doc.ref);
+      } else {
+        active.push({
+          id: doc.id,
+          ...data
+        });
+      }
+    });
+
+    if (toDelete.length > 0) {
+      const batch = db.batch();
+      toDelete.forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+
+    reservations = active;
+    renderDayView();
+    renderWeekView();
+  }
+
+  async function addReservation(dateKey, room, timeSlotIndex, name, note) {
+    if (hasConflict(dateKey, room, timeSlotIndex)) {
+      return false;
+    }
+
+    const docRef = await db.collection("reservations").add({
+      date: dateKey,
+      room,
+      timeSlotIndex,
+      name,
+      note: note || ""
+    });
+
+    reservations.push({
+      id: docRef.id,
+      date: dateKey,
+      room,
+      timeSlotIndex,
+      name,
+      note: note || ""
+    });
+
+    return true;
+  }
+
+  async function deleteReservation(id) {
+    await db.collection("reservations").doc(id).delete();
+    reservations = reservations.filter((r) => r.id !== id);
+  }
+
+  // ---- UI 렌더링 ----
+  function renderDayView() {
+    const tbody = document.querySelector("#day-grid tbody");
+    tbody.innerHTML = "";
+    const dateKey = formatDateKey(selectedDate);
+    const weekend = !isWeekday(selectedDate);
+
+    TIME_SLOTS.forEach((slot, index) => {
+      const tr = document.createElement("tr");
+
+      const timeTd = document.createElement("td");
+      timeTd.className = "time-cell";
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "time-label";
+      labelDiv.textContent = TIME_LABELS[index];
+      const rangeDiv = document.createElement("div");
+      rangeDiv.className = "time-range";
+      rangeDiv.textContent = slot;
+      timeTd.appendChild(labelDiv);
+      timeTd.appendChild(rangeDiv);
+      tr.appendChild(timeTd);
+
+      ROOMS.forEach((room) => {
+        const td = document.createElement("td");
+        const slotDiv = document.createElement("div");
+
+        const blocked = isRoomTimeBlocked(selectedDate, room, index);
+
+        if (weekend || blocked) {
+          // 토/일 또는 회의실/시간대별 Unavailable
+          slotDiv.className = "slot disabled";
+          const main = document.createElement("span");
+          main.textContent = "Unavailable";
+          slotDiv.appendChild(main);
+        } else {
+          const existing = reservations.find(
+            (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === index
+          );
+
+          if (existing) {
+            let ownerClass = "other-reservation";
+            const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
+            if (currentName && existing.name === currentName) {
+              ownerClass = "my-reservation";
+            }
+            slotDiv.className = "slot booked " + ownerClass;
+            const main = document.createElement("span");
+            main.textContent = existing.name; // 예약자명만 표시
+            slotDiv.appendChild(main);
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          } else {
+            slotDiv.className = "slot free";
+            const main = document.createElement("span");
+            main.textContent = "Available";
+            slotDiv.appendChild(main);
+            // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약/취소 토글
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          }
+        }
+
+        td.appendChild(slotDiv);
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("day-display").textContent = formatKoreanDate(selectedDate);
+  }
+
+  function renderWeekView() {
+    const tbody = document.querySelector("#week-grid tbody");
+    tbody.innerHTML = "";
+
+    const { monday, sunday } = getWeekRange(weekBaseDate);
+
+    document.getElementById("week-display").textContent =
+      `${monday.getFullYear()}. ${monday.getMonth() + 1}. ${monday.getDate()} ~ ` +
+      `${sunday.getFullYear()}. ${sunday.getMonth() + 1}. ${sunday.getDate()}`;
+
+    ROOMS.forEach((room) => {
+      const tr = document.createElement("tr");
+
+      const roomTd = document.createElement("td");
+      roomTd.className = "room-cell";
+      roomTd.textContent = room;
+      tr.appendChild(roomTd);
+
+      for (let i = 0; i < 5; i++) {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + i);
+        const dateKey = formatDateKey(dayDate);
+
+        const td = document.createElement("td");
+
+        let roomReservations = reservations
+          .filter((r) => r.date === dateKey && r.room === room)
+          .sort((a, b) => a.timeSlotIndex - b.timeSlotIndex);
+
+        if (weekShowMyOnly && currentUser) {
+          const currentName = currentUser.name || currentUser.email;
+          roomReservations = roomReservations.filter((r) => r.name === currentName);
+        }
+
+        if (roomReservations.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty-week-cell";
+          empty.textContent = "-";
+          td.appendChild(empty);
+        } else {
+          const list = document.createElement("div");
+          list.className = "week-slot-list";
+
+          roomReservations.forEach((r) => {
+            const item = document.createElement("div");
+            let ownerClass = "other-reservation";
+            if (currentUser) {
+              const currentName = currentUser.name || currentUser.email;
+              if (r.name === currentName) ownerClass = "my-reservation";
+            }
+            item.className = "week-slot-item " + ownerClass;
+
+            const timeSpan = document.createElement("span");
+            timeSpan.className = "week-slot-time";
+            timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "week-slot-name";
+            nameSpan.textContent = r.name; // 예약자명만 표시
+
+            item.appendChild(timeSpan);
+            item.appendChild(nameSpan);
+
+            // 주간 보기에서도 클릭 시 예약 취소 가능 (본인 예약만)
+            item.addEventListener("click", () => {
+              handleWeekItemClick(r);
+            });
+
+            list.appendChild(item);
+          });
+
+          td.appendChild(list);
+        }
+
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function syncDateInputs() {
+    const dateInput = document.getElementById("date-input");
+    dateInput.value = formatDateKey(selectedDate);
+  }
+
+  function showError(message) {
+    const box = document.getElementById("form-error");
+    const textEl = document.getElementById("form-error-text");
+    textEl.textContent = message;
+    box.classList.remove("hidden");
+  }
+
+  function clearError() {
+    const box = document.getElementById("form-error");
+    box.classList.add("hidden");
+  }
+
+  function updateAuthUI() {
+    const status = document.getElementById("auth-status");
+    const name = document.getElementById("auth-user-name");
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const reserverName = document.getElementById("reserver-name");
+    const authAlert = document.getElementById("auth-alert");
+
+    if (currentUser) {
+      status.textContent = "Signed in";
+      name.textContent = currentUser.email;
+      reserverName.value = currentUser.name || currentUser.email;
+      authAlert.classList.add("hidden");
+      loginBtn.classList.add("hidden");
+      logoutBtn.classList.remove("hidden");
+    } else {
+      status.textContent = "Sign-in required";
+      name.textContent = "Please sign in with your @nsworld.net account";
+      reserverName.value = "";
+      authAlert.classList.remove("hidden");
+      loginBtn.classList.remove("hidden");
+      logoutBtn.classList.add("hidden");
+    }
+  }
+
+  // ---- Google 로그인 ----
+  function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    auth.signInWithPopup(provider)
+      .then((result) => {
+        const user = result.user;
+        const email = user.email || "";
+        const name = user.displayName || email.split("@")[0];
+
+        if (!email.endsWith("@nsworld.net")) {
+          alert("Only @nsworld.net domain accounts may use this service.");
+          return auth.signOut();
+        }
+
+        currentUser = { name, email };
+        updateAuthUI();
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("An error occurred during sign-in.");
+      });
+  }
+
+  function googleLogout() {
+    auth.signOut().then(() => {
+      currentUser = null;
+      updateAuthUI();
+    });
+  }
+
+  // ---- 초기화 ----
+  function initTimeOptions() {
+    const select = document.getElementById("time-select");
+    TIME_SLOTS.forEach((slot, index) => {
+      const opt = document.createElement("option");
+      opt.value = String(index);
+      opt.textContent = slot;
+      select.appendChild(opt);
+    });
+  }
+
+  function initDateDefaults() {
+    const dateInput = document.getElementById("date-input");
+    const todayKey = formatDateKey(selectedDate);
+    dateInput.value = todayKey;
+    weekBaseDate = new Date(selectedDate);
+  }
+
+  function attachEventHandlers() {
+    document.getElementById("login-btn").addEventListener("click", googleLogin);
+    document.getElementById("logout-btn").addEventListener("click", googleLogout);
+
+    document.getElementById("date-input").addEventListener("change", (e) => {
+      const d = parseDateFromInput(e.target.value);
+      if (d) {
+        selectedDate = d;
+        weekBaseDate = new Date(d);
+        renderDayView();
+        renderWeekView();
+      }
+    });
+
+    document.getElementById("prev-day").addEventListener("click", () => {
+      selectedDate.setDate(selectedDate.getDate() - 1);
+      weekBaseDate = new Date(selectedDate);
+      syncDateInputs();
+      renderDayView();
+      renderWeekView();
+    });
+
+    document.getElementById("next-day").addEventListener("click", () => {
+      selectedDate.setDate(selectedDate.getDate() + 1);
+      weekBaseDate = new Date(selectedDate);
+      syncDateInputs();
+      renderDayView();
+      renderWeekView();
+    });
+
+    document.getElementById("prev-week").addEventListener("click", () => {
+      weekBaseDate.setDate(weekBaseDate.getDate() - 7);
+      renderWeekView();
+    });
+
+    document.getElementById("next-week").addEventListener("click", () => {
+      weekBaseDate.setDate(weekBaseDate.getDate() + 7);
+      renderWeekView();
+    });
+
+    const myWeekToggle = document.getElementById("my-week-only-toggle");
+    if (myWeekToggle) {
+      myWeekToggle.addEventListener("change", (e) => {
+        weekShowMyOnly = e.target.checked;
+        renderWeekView();
+      });
+    }
+
+    document.getElementById("reservation-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearError();
+
+      if (!currentUser) {
+        showError("Please sign in with your @nsworld.net account first.");
+        return;
+      }
+
+      const dateVal = document.getElementById("date-input").value;
+      const roomVal = document.getElementById("room-select").value;
+      const timeVal = document.getElementById("time-select").value;
+      const repeatVal = document.getElementById("repeat-select").value;
+      const repeatUntilVal = document.getElementById("repeat-until").value;
+      const noteVal = document.getElementById("note-input").value.trim();
+      const nameVal = document.getElementById("reserver-name").value.trim() || currentUser.name;
+
+      if (!dateVal || !roomVal || timeVal === "") {
+        showError("Reservation date, 회의실, 시간을 모두 선택해 주세요.");
+        return;
+      }
+
+      const baseDate = parseDateFromInput(dateVal);
+      if (!baseDate) {
+        showError("Invalid date format.");
+        return;
+      }
+
+      if (!isWeekday(baseDate)) {
+        showError("Reservations are only available from Monday to Friday.");
+        return;
+      }
+
+      const timeIndex = parseInt(timeVal, 10);
+      if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
+        showError("This room and time slot is currently unavailable for reservation.");
+        return;
+      }
+
+      const baseDateKey = formatDateKey(baseDate);
+
+      let successCount = 0;
+      let conflictCount = 0;
+
+      if (repeatVal === "none") {
+        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal)) {
+          successCount++;
+        } else {
+          conflictCount++;
+        }
+      } else if (repeatVal === "weekly") {
+        const untilDate = parseDateFromInput(repeatUntilVal);
+        if (!untilDate) {
+          showError("Repeat의 종료일을 선택해 주세요.");
+          return;
+        }
+        if (untilDate < baseDate) {
+          showError("The end date for a repeating reservation must be after the start date.");
+          return;
+        }
+
+        const tempDate = new Date(baseDate);
+        while (tempDate <= untilDate) {
+          const key = formatDateKey(tempDate);
+          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal)) {
+            successCount++;
+          } else {
+            conflictCount++;
+          }
+          tempDate.setDate(tempDate.getDate() + 7);
+        }
+      }
+
+      if (conflictCount > 0 && successCount === 0) {
+        showError("선택한 조건으로 이미 예약이 존재하여 등록할 수 없습니다.");
+      } else if (conflictCount > 0) {
+        showError(`일부 날짜는 이미 예약이 있어 제외되었으며, ${successCount}건의 예약이 등록되었습니다.`);
+      }
+
+      await fetchReservations(); // 최신 상태 다시 반영
+    });
+  }
+
+  // ---- 인증 상태 변화 감지 ----
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      const email = user.email || "";
+      const name = user.displayName || email.split("@")[0];
+
+      if (!email.endsWith("@nsworld.net")) {
+        alert("Only @nsworld.net domain accounts may use this service.");
+        auth.signOut();
+        return;
+      }
+
+      currentUser = { name, email };
+    } else {
+      currentUser = null;
+    }
+    updateAuthUI();
+  });
+
+  // ---- 시작 ----
+  document.addEventListener("DOMContentLoaded", async () => {
+    initTimeOptions();
+    initDateDefaults();
+    updateAuthUI();
+    attachEventHandlers();
+    await fetchReservations();
+  });
+</script>
+</body>
+</html>
