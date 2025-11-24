@@ -173,6 +173,19 @@
       align-items: flex-start;
     }
 
+    .admin-actions {
+      margin: 8px 0 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .admin-actions .btn {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+    }
+
     .card {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
@@ -337,6 +350,18 @@
       padding: 0 6px;
       font-weight: 600;
       color: #111827;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+
+    .date-display:hover {
+      background-color: rgba(79, 70, 229, 0.08);
+    }
+
+    .date-display:active {
+      background-color: rgba(79, 70, 229, 0.16);
+      transform: translateY(1px);
     }
 
     .day-grid {
@@ -785,6 +810,42 @@
     .toggle-input:checked + .toggle-slider::before {
       transform: translateX(16px);
     }
+
+    .btn-toggle-on {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #b91c1c;
+    }
+
+    .week-slot-item.blocked-item {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .week-slot-item.blocked-item .week-slot-time,
+    .week-slot-item.blocked-item .week-slot-name {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+
+    .day-grid th.room-header {
+      cursor: default;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .block-mode-active .day-grid th.room-header {
+      cursor: pointer;
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+
+
+    .block-mode-active .day-grid th.room-header:active {
+      transform: scale(0.97);
+      background-color: #fecaca;
+    }
+
 </style>
 </head>
 <body>
@@ -804,6 +865,14 @@
         </div>
       </div>
     </header>
+
+    <!-- 관리자용 일괄 취소 버튼 (관리자에게만 표시) -->
+    <section class="admin-actions hidden" id="admin-actions">
+      <button type="button" class="btn btn-outline" id="toggle-block-mode">예약 불가 일자 설정</button>
+      <button type="button" class="btn btn-outline" id="cancel-day-btn">일간 예약 일괄 취소</button>
+      <button type="button" class="btn btn-outline" id="cancel-week-btn">주간 예약 일괄 취소</button>
+    </section>
+
 
     <main class="layout-main">
       <!-- 예약 폼 -->
@@ -846,10 +915,20 @@
               <label class="field-label">
                 <span class="required">시간</span>
               </label>
-              <select id="time-select" class="field-select" required>
+              <select id="time-select" class="field-select">
                 <option value="">선택하세요</option>
               </select>
             </div>
+          </div>
+
+          <div class="field-group hidden" id="block-room-options">
+            <label class="field-label">
+              <span>예약 불가 옵션(관리자)</span>
+            </label>
+            <label style="font-size:0.78rem; color:#4b5563;">
+              <input type="checkbox" id="block-room-all-day" style="margin-right:4px;">
+              이 날짜의 해당 회의실 <strong>전체 시간</strong>을 예약 불가로 설정
+            </label>
           </div>
 
           <div class="field-group">
@@ -898,6 +977,7 @@
         </p>
       </section>
 
+
       <!-- 보기 영역: 위쪽 일간 예약 현황 / 아래쪽 주간 예약 현황 -->
       <section class="views-column">
         <!-- 일간 예약 현황 -->
@@ -918,11 +998,11 @@
             <thead>
               <tr>
                 <th>시간</th>
-                <th>가온누리</th>
-                <th>교무실</th>
-                <th>교육문화관</th>
-                <th>상담실</th>
-                <th>옥스퍼드 교실</th>
+                <th class="room-header">가온누리</th>
+                <th class="room-header">교무실</th>
+                <th class="room-header">교육문화관</th>
+                <th class="room-header">상담실</th>
+                <th class="room-header">옥스퍼드 교실</th>
               </tr>
             </thead>
             <tbody>
@@ -1069,12 +1149,19 @@
   ];
 
   // Firestore 연동용 예약 캐시
-  let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note}
+  let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note, blocked?}
   let weekShowMyOnly = false;
 
   let currentUser = null; // {name, email}
   let selectedDate = new Date();
   let weekBaseDate = new Date();
+
+  let blockMode = false; // 관리자용 예약 불가 설정 모드
+
+  function isAdmin() {
+    return currentUser && currentUser.email === "leens@nsworld.net";
+  }
+
 
   // ---- 유틸 함수 ----
   function formatDateKey(date) {
@@ -1195,18 +1282,13 @@
 
     const currentName = currentUser.name || currentUser.email;
 
-    // 이미 예약된 상태라면: 본인 예약만 취소 가능
+    // 이미 예약 또는 예약 불가가 설정된 상태라면: 기존 로직 (취소/해제)
     if (existing) {
-      if (existing.name !== currentName) {
-        showError("다른 사용자의 예약은 취소할 수 없습니다.");
-        return;
-      }
-      await deleteReservation(existing.id);
-      await fetchReservations();
+      await cancelReservation(existing);
       return;
     }
 
-    // 비어 있는 상태라면: 새로 예약 (월~금만)
+    // 비어 있는 상태일 때
     if (!isWeekday(date)) {
       showError("예약은 월요일부터 금요일까지만 가능합니다.");
       return;
@@ -1217,7 +1299,19 @@
       return;
     }
 
-    if (await addReservation(dateKey, room, timeIndex, currentName, "")) {
+    // 관리자 + 예약 불가 모드인 경우: 예약 불가로 설정
+    if (blockMode && isAdmin()) {
+      const blockName = "예약 불가";
+      if (await addReservation(dateKey, room, timeIndex, blockName, "", null, true)) {
+        await fetchReservations();
+      } else {
+        showError("해당 시간에는 이미 예약 또는 예약 불가가 설정되어 있습니다.");
+      }
+      return;
+    }
+
+    // 일반 예약
+    if (await addReservation(dateKey, room, timeIndex, currentName, "", null, false)) {
       await fetchReservations();
     } else {
       showError("선택한 시간에는 이미 예약이 존재합니다.");
@@ -1225,23 +1319,78 @@
   }
 
 
-  async function handleWeekItemClick(reservation) {
+  async function handleDayRoomHeaderClick(room) {
+    if (!currentUser || !isAdmin() || !blockMode) {
+      return;
+    }
+
     clearError();
 
-    if (!currentUser) {
-      showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+    const date = new Date(selectedDate);
+    const dateKey = formatDateKey(date);
+    if (!isWeekday(date)) {
+      showError("예약 불가 설정은 월요일부터 금요일까지만 가능합니다.");
       return;
     }
 
-    const currentName = currentUser.name || currentUser.email;
+    const todays = reservations.filter((r) => r.date === dateKey && r.room === room);
 
-    if (reservation.name !== currentName) {
-      showError("다른 사용자의 예약은 취소할 수 없습니다.");
+    // 예약 불가를 설정할 수 있는 시간 슬롯(고정 예약 불가 시간 제외)
+    const allowedIndexes = [];
+    for (let idx = 0; idx < TIME_SLOTS.length; idx++) {
+      if (!isRoomTimeBlocked(date, room, idx)) {
+        allowedIndexes.push(idx);
+      }
+    }
+    if (allowedIndexes.length === 0) {
       return;
     }
 
-    await deleteReservation(reservation.id);
-    await fetchReservations();
+    const blockedIndexes = new Set(
+      todays
+        .filter((r) => r.blocked && allowedIndexes.includes(r.timeSlotIndex))
+        .map((r) => r.timeSlotIndex)
+    );
+
+    const isAllBlocked = blockedIndexes.size === allowedIndexes.length;
+
+    if (isAllBlocked) {
+      // 이미 해당 회의실의 모든 허용 시간대가 예약 불가 상태인 경우 → 예약 불가 해제
+      const toUnblock = todays.filter(
+        (r) => r.blocked && allowedIndexes.includes(r.timeSlotIndex)
+      );
+      if (toUnblock.length === 0) return;
+
+      const ok = confirm(`${room}의 예약 불가 시간을 모두 해제하시겠습니까?`);
+      if (!ok) return;
+
+      await Promise.all(toUnblock.map((r) => deleteReservation(r.id)));
+      await fetchReservations();
+    } else {
+      // 아직 전체가 예약 불가가 아닌 경우 → 빈 슬롯을 예약 불가로 일괄 설정
+      const blockName = "예약 불가";
+      let changed = 0;
+
+      for (const idx of allowedIndexes) {
+        const existing = todays.find((r) => r.timeSlotIndex === idx);
+        if (existing) {
+          // 이미 예약(또는 예약 불가)이 있는 경우에는 건드리지 않음
+          continue;
+        }
+        const ok = await addReservation(dateKey, room, idx, blockName, "", null, true);
+        if (ok) changed++;
+      }
+
+      if (changed > 0) {
+        await fetchReservations();
+      } else {
+        showError("추가로 예약 불가로 설정할 수 있는 시간이 없습니다.");
+      }
+    }
+  }
+
+async function handleWeekItemClick(reservation) {
+    await cancelReservation(reservation);
   }
 
   // ---- Firestore 연동 ----
@@ -1280,26 +1429,31 @@
     renderWeekView();
   }
 
-  async function addReservation(dateKey, room, timeSlotIndex, name, note) {
+  async function addReservation(dateKey, room, timeSlotIndex, name, note, repeatGroupId = null, blocked = false) {
     if (hasConflict(dateKey, room, timeSlotIndex)) {
       return false;
     }
 
-    const docRef = await db.collection("reservations").add({
+    const payload = {
       date: dateKey,
       room,
       timeSlotIndex,
       name,
       note: note || ""
-    });
+    };
+
+    if (repeatGroupId) {
+      payload.repeatGroupId = repeatGroupId;
+    }
+    if (blocked) {
+      payload.blocked = true;
+    }
+
+    const docRef = await db.collection("reservations").add(payload);
 
     reservations.push({
       id: docRef.id,
-      date: dateKey,
-      room,
-      timeSlotIndex,
-      name,
-      note: note || ""
+      ...payload
     });
 
     return true;
@@ -1308,6 +1462,127 @@
   async function deleteReservation(id) {
     await db.collection("reservations").doc(id).delete();
     reservations = reservations.filter((r) => r.id !== id);
+  }
+
+  async function cancelReservation(reservation) {
+    clearError();
+
+    if (!currentUser) {
+      showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+      return;
+    }
+
+    const currentName = currentUser.name || currentUser.email;
+    const amAdmin = isAdmin();
+    const isOwn = reservation.name === currentName;
+
+    // 예약 불가(차단) 해제 처리
+    if (reservation.blocked) {
+      if (!amAdmin) {
+        showError("예약 불가 시간은 관리자만 해제할 수 있습니다.");
+        return;
+      }
+      const okUnblock = confirm("이 예약 불가 시간을 해제하시겠습니까?\n해제 후에는 다시 예약이 가능해집니다.");
+      if (!okUnblock) return;
+      await deleteReservation(reservation.id);
+      await fetchReservations();
+      return;
+    }
+
+    // 일반 사용자는 자기 예약만 취소 가능
+    if (!amAdmin && !isOwn) {
+      showError("다른 사용자의 예약은 취소할 수 없습니다.");
+      return;
+    }
+
+    // 반복 예약 처리
+    if (reservation.repeatGroupId) {
+      const groupReservations = reservations.filter(
+        (r) => r.repeatGroupId === reservation.repeatGroupId
+      );
+
+      if (groupReservations.length > 1) {
+        // 반복 예약: 전체/이번만 선택
+        const applyAll = confirm(
+          `이 예약은 반복 예약입니다.\n\n[확인]: 반복 예약 전체 (${groupReservations.length}건) 취소\n[취소]: 이 일정만 취소`
+        );
+
+        if (applyAll) {
+          await Promise.all(groupReservations.map((r) => deleteReservation(r.id)));
+        } else {
+          await deleteReservation(reservation.id);
+        }
+        await fetchReservations();
+        return;
+      } else {
+        // 반복 그룹이지만 현재 남은 일정이 1건뿐인 경우 → 단일 예약과 동일하게 처리
+        if (isOwn) {
+          // 본인 예약(일반/관리자 공통): 확인 없이 바로 취소
+          await deleteReservation(reservation.id);
+          await fetchReservations();
+          return;
+        } else if (amAdmin) {
+          // 관리자 + 타인 예약: 한 번 확인 후 취소
+          const ok = confirm("이 예약을 취소하시겠습니까?");
+          if (!ok) return;
+          await deleteReservation(reservation.id);
+          await fetchReservations();
+          return;
+        }
+      }
+    } else {
+      // 반복 예약이 아닌 경우
+      if (isOwn) {
+        // 본인 예약(일반/관리자 공통): 확인 없이 바로 취소
+        await deleteReservation(reservation.id);
+        await fetchReservations();
+        return;
+      } else if (amAdmin) {
+        // 관리자 + 타인 단일 예약: 한 번 확인 후 취소
+        const ok = confirm("이 예약을 취소하시겠습니까?");
+        if (!ok) return;
+        await deleteReservation(reservation.id);
+        await fetchReservations();
+        return;
+      }
+    }
+  }
+
+async function deleteReservationsBulk(filterFn, label) {
+    const targets = reservations.filter(filterFn);
+    if (targets.length === 0) {
+      alert("취소할 예약이 없습니다.");
+      return;
+    }
+    const ok = confirm(`${label} 예약 ${targets.length}건을 모두 취소하시겠습니까?`);
+    if (!ok) return;
+
+    await Promise.all(targets.map((r) => deleteReservation(r.id)));
+    await fetchReservations();
+  }
+
+  async function handleBulkDayCancel() {
+    if (!currentUser || !isAdmin()) {
+      showError("일간 예약 일괄 취소는 관리자만 사용할 수 있습니다.");
+      return;
+    }
+    const dateKey = formatDateKey(selectedDate);
+    await deleteReservationsBulk((r) => r.date === dateKey, "해당 날짜");
+  }
+
+  async function handleBulkWeekCancel() {
+    if (!currentUser || !isAdmin()) {
+      showError("주간 예약 일괄 취소는 관리자만 사용할 수 있습니다.");
+      return;
+    }
+    const { monday, sunday } = getWeekRange(weekBaseDate);
+    const mondayKey = formatDateKey(monday);
+    const sundayKey = formatDateKey(sunday);
+
+    await deleteReservationsBulk(
+      (r) => r.date >= mondayKey && r.date <= sundayKey,
+      "해당 주간"
+    );
   }
 
   // ---- UI 렌더링 ----
@@ -1336,10 +1611,10 @@
         const td = document.createElement("td");
         const slotDiv = document.createElement("div");
 
-        const blocked = isRoomTimeBlocked(selectedDate, room, index);
+        const staticBlocked = isRoomTimeBlocked(selectedDate, room, index);
 
-        if (weekend || blocked) {
-          // 토/일 또는 회의실/시간대별 예약 불가
+        if (weekend || staticBlocked) {
+          // 토/일 또는 회의실/시간대별 고정 예약 불가
           slotDiv.className = "slot disabled";
           const main = document.createElement("span");
           main.textContent = "예약 불가";
@@ -1349,7 +1624,20 @@
             (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === index
           );
 
-          if (existing) {
+          if (existing && existing.blocked) {
+            // 관리자 설정 예약 불가 시간
+            slotDiv.className = "slot disabled";
+            const main = document.createElement("span");
+            main.textContent = "예약 불가";
+            slotDiv.appendChild(main);
+
+            if (isAdmin()) {
+              slotDiv.style.cursor = "pointer";
+              slotDiv.addEventListener("click", () => {
+                cancelReservation(existing);
+              });
+            }
+          } else if (existing) {
             const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
             const isMine = currentName && existing.name === currentName;
             const ownerClass = isMine ? "my-reservation" : "other-reservation";
@@ -1365,7 +1653,7 @@
             const main = document.createElement("span");
             main.textContent = "예약 가능";
             slotDiv.appendChild(main);
-            // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약/취소 토글
+            // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약 또는 예약 불가 설정
             slotDiv.addEventListener("click", () => {
               handleQuickReserve(room, index);
             });
@@ -1382,7 +1670,7 @@
     document.getElementById("day-display").textContent = formatKoreanDate(selectedDate);
   }
 
-  function renderWeekView() {
+function renderWeekView() {
     const tbody = document.querySelector("#week-grid tbody");
     tbody.innerHTML = "";
 
@@ -1413,7 +1701,7 @@
 
         if (weekShowMyOnly && currentUser) {
           const currentName = currentUser.name || currentUser.email;
-          roomReservations = roomReservations.filter((r) => r.name === currentName);
+          roomReservations = roomReservations.filter((r) => !r.blocked && r.name === currentName);
         }
 
         if (roomReservations.length === 0) {
@@ -1427,23 +1715,38 @@
 
           roomReservations.forEach((r) => {
             const item = document.createElement("div");
-            const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
-            const isMine = currentName && r.name === currentName;
-            const ownerClass = isMine ? "my-reservation" : "other-reservation";
-            item.className = "week-slot-item " + ownerClass;
 
-            const timeSpan = document.createElement("span");
-            timeSpan.className = "week-slot-time";
-            timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
+            if (r.blocked) {
+              // 예약 불가 표시
+              item.className = "week-slot-item blocked-item";
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "week-slot-time";
+              timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
 
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "week-slot-name";
-            nameSpan.textContent = r.name; // 예약자명만 표시
+              const nameSpan = document.createElement("span");
+              nameSpan.className = "week-slot-name";
+              nameSpan.textContent = "예약 불가";
 
-            item.appendChild(timeSpan);
-            item.appendChild(nameSpan);
+              item.appendChild(timeSpan);
+              item.appendChild(nameSpan);
+            } else {
+              const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
+              const isMine = currentName && r.name === currentName;
+              const ownerClass = isMine ? "my-reservation" : "other-reservation";
+              item.className = "week-slot-item " + ownerClass;
 
-            // 주간 보기에서도 클릭 시 예약 취소 가능 (본인 예약만)
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "week-slot-time";
+              timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
+
+              const nameSpan = document.createElement("span");
+              nameSpan.className = "week-slot-name";
+              nameSpan.textContent = r.name; // 예약자명만 표시
+
+              item.appendChild(timeSpan);
+              item.appendChild(nameSpan);
+            }
+
             item.addEventListener("click", () => {
               handleWeekItemClick(r);
             });
@@ -1461,7 +1764,7 @@
     });
   }
 
-  function syncDateInputs() {
+function syncDateInputs() {
     const dateInput = document.getElementById("date-input");
     dateInput.value = formatDateKey(selectedDate);
   }
@@ -1478,6 +1781,7 @@
     box.classList.add("hidden");
   }
 
+  
   function updateAuthUI() {
     const status = document.getElementById("auth-status");
     const name = document.getElementById("auth-user-name");
@@ -1485,6 +1789,7 @@
     const logoutBtn = document.getElementById("logout-btn");
     const reserverName = document.getElementById("reserver-name");
     const authAlert = document.getElementById("auth-alert");
+    const adminActions = document.getElementById("admin-actions");
 
     if (currentUser) {
       status.textContent = "로그인됨";
@@ -1501,9 +1806,72 @@
       loginBtn.classList.remove("hidden");
       logoutBtn.classList.add("hidden");
     }
+
+    if (adminActions) {
+      if (isAdmin()) {
+        adminActions.classList.remove("hidden");
+      } else {
+        adminActions.classList.add("hidden");
+      }
+    }
+
+    // 관리자 모드 UI 동기화
+    updateBlockModeUI();
+  }
+
+  
+  function updateBlockModeUI() {
+    const blockBtn = document.getElementById("toggle-block-mode");
+    const blockOptions = document.getElementById("block-room-options");
+    const blockAllDay = document.getElementById("block-room-all-day");
+    const timeSelect = document.getElementById("time-select");
+
+    const active = blockMode && isAdmin();
+
+    if (blockBtn) {
+      if (active) {
+        blockBtn.classList.add("btn-toggle-on");
+        blockBtn.textContent = "예약 불가 일자 설정 중";
+        document.body.classList.add("block-mode-active");
+      } else {
+        blockBtn.classList.remove("btn-toggle-on");
+        blockBtn.textContent = "예약 불가 일자 설정";
+        document.body.classList.remove("block-mode-active");
+      }
+    }
+
+    if (blockOptions) {
+      if (active) {
+        blockOptions.classList.remove("hidden");
+      } else {
+        blockOptions.classList.add("hidden");
+        if (blockAllDay) blockAllDay.checked = false;
+      }
+    }
+
+    // 시간 선택 UI: 예약 불가 모드에서는 다중 선택 가능, 일반 모드에서는 단일 선택
+    if (timeSelect) {
+      if (active) {
+        timeSelect.multiple = true;
+        // 전체/선택 옵션 포함해서 적당한 높이
+        timeSelect.size = Math.min(TIME_SLOTS.length + 1, 7);
+      } else {
+        timeSelect.multiple = false;
+        timeSelect.size = 1;
+        // 여러 개 선택되어 있었다면 첫 번째만 남기기
+        const selected = Array.from(timeSelect.options).filter((o) => o.selected);
+        if (selected.length > 1) {
+          const first = selected.find((o) => o.value !== "") || selected[0];
+          Array.from(timeSelect.options).forEach((o) => {
+            o.selected = (o === first);
+          });
+        }
+      }
+    }
   }
 
   // ---- Google 로그인 ----
+
   function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -1530,6 +1898,7 @@
   function googleLogout() {
     auth.signOut().then(() => {
       currentUser = null;
+      blockMode = false;
       updateAuthUI();
     });
   }
@@ -1555,6 +1924,68 @@
   function attachEventHandlers() {
     document.getElementById("login-btn").addEventListener("click", googleLogin);
     document.getElementById("logout-btn").addEventListener("click", googleLogout);
+
+    const dayBulkBtn = document.getElementById("cancel-day-btn");
+    if (dayBulkBtn) {
+      dayBulkBtn.addEventListener("click", handleBulkDayCancel);
+    }
+    const weekBulkBtn = document.getElementById("cancel-week-btn");
+    if (weekBulkBtn) {
+      weekBulkBtn.addEventListener("click", handleBulkWeekCancel);
+    }
+
+    const blockModeBtn = document.getElementById("toggle-block-mode");
+    if (blockModeBtn) {
+      blockModeBtn.addEventListener("click", () => {
+        if (!isAdmin()) {
+          showError("예약 불가 일자 설정은 관리자만 사용할 수 있습니다.");
+          return;
+        }
+        blockMode = !blockMode;
+        updateBlockModeUI();
+      });
+    }
+
+
+    // ▷ 일간 예약 현황 헤더(회의실명) 클릭 시, 해당 회의실 하루 전체 예약 불가 토글 (관리자 + 예약 불가 모드에서만)
+    const dayHeaderRow = document.querySelector("#day-grid thead tr");
+    if (dayHeaderRow) {
+      const headerCells = dayHeaderRow.querySelectorAll("th.room-header");
+      headerCells.forEach((th, idx) => {
+        const room = ROOMS[idx];
+        th.addEventListener("click", () => {
+          if (blockMode && isAdmin()) {
+            handleDayRoomHeaderClick(room);
+          }
+        });
+      });
+    }
+
+    // ▷ 일간 날짜 텍스트 클릭 시 오늘로 이동
+    const dayDisplayEl = document.getElementById("day-display");
+    if (dayDisplayEl) {
+      dayDisplayEl.addEventListener("click", () => {
+        const today = new Date();
+        selectedDate = new Date(today);
+        weekBaseDate = new Date(today);
+        syncDateInputs();
+        renderDayView();
+        renderWeekView();
+      });
+    }
+
+    // ▷ 주간 기간 텍스트 클릭 시 오늘이 속한 주간으로 이동
+    const weekDisplayEl = document.getElementById("week-display");
+    if (weekDisplayEl) {
+      weekDisplayEl.addEventListener("click", () => {
+        const today = new Date();
+        selectedDate = new Date(today);
+        weekBaseDate = new Date(today);
+        syncDateInputs();
+        renderDayView();
+        renderWeekView();
+      });
+    }
 
     document.getElementById("date-input").addEventListener("change", (e) => {
       const d = parseDateFromInput(e.target.value);
@@ -1600,6 +2031,7 @@
       });
     }
 
+    
     document.getElementById("reservation-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       clearError();
@@ -1611,15 +2043,39 @@
 
       const dateVal = document.getElementById("date-input").value;
       const roomVal = document.getElementById("room-select").value;
-      const timeVal = document.getElementById("time-select").value;
+      const timeSelect = document.getElementById("time-select");
       const repeatVal = document.getElementById("repeat-select").value;
       const repeatUntilVal = document.getElementById("repeat-until").value;
       const noteVal = document.getElementById("note-input").value.trim();
-      const nameVal = document.getElementById("reserver-name").value.trim() || currentUser.name;
+      const nameVal = document.getElementById("reserver-name").value.trim() || (currentUser.name || currentUser.email);
+      const blockAllDayEl = document.getElementById("block-room-all-day");
+      const blockAllDay = blockAllDayEl ? blockAllDayEl.checked : false;
 
-      if (!dateVal || !roomVal || timeVal === "") {
-        showError("예약 날짜, 회의실, 시간을 모두 선택해 주세요.");
+      const isBlockModeActive = blockMode && isAdmin();
+
+      if (!dateVal || !roomVal) {
+        showError("예약 날짜와 회의실을 선택해 주세요.");
         return;
+      }
+
+      // 시간 선택 처리 (다중 선택 가능)
+      const selectedOptions = timeSelect
+        ? Array.from(timeSelect.selectedOptions).filter((opt) => opt.value !== "")
+        : [];
+      const selectedTimeIndexes = selectedOptions.map((opt) => parseInt(opt.value, 10));
+
+      if (!isBlockModeActive) {
+        // 일반 예약 모드: 시간 1개만 허용
+        if (selectedTimeIndexes.length !== 1) {
+          showError("일반 예약에서는 시간을 한 개만 선택해 주세요.");
+          return;
+        }
+      } else {
+        // 예약 불가 모드: 시간 여러 개 선택 가능, 또는 전체 시간 선택
+        if (!blockAllDay && selectedTimeIndexes.length === 0) {
+          showError("예약 불가 설정 시 시간을 선택하거나, 전체 시간을 예약 불가로 설정해 주세요.");
+          return;
+        }
       }
 
       const baseDate = parseDateFromInput(dateVal);
@@ -1633,54 +2089,133 @@
         return;
       }
 
-      const timeIndex = parseInt(timeVal, 10);
-      if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
-        showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
-        return;
-      }
-
       const baseDateKey = formatDateKey(baseDate);
 
       let successCount = 0;
       let conflictCount = 0;
 
-      if (repeatVal === "none") {
-        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal)) {
-          successCount++;
-        } else {
-          conflictCount++;
+      if (isBlockModeActive) {
+        // ▷ 예약 불가 모드: 예약 만들기가 '예약 불가 만들기'로 동작
+        const blockName = "예약 불가";
+
+        if (repeatVal === "none") {
+          // 단일 날짜
+          if (blockAllDay) {
+            // 하루 전체 시간 예약 불가
+            for (let idx = 0; idx < TIME_SLOTS.length; idx++) {
+              if (isRoomTimeBlocked(baseDate, roomVal, idx)) continue;
+              if (await addReservation(baseDateKey, roomVal, idx, blockName, "", null, true)) {
+                successCount++;
+              } else {
+                conflictCount++;
+              }
+            }
+          } else {
+            // 선택한 시간대만 예약 불가
+            for (const timeIndex of selectedTimeIndexes) {
+              if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) continue;
+              if (await addReservation(baseDateKey, roomVal, timeIndex, blockName, "", null, true)) {
+                successCount++;
+              } else {
+                conflictCount++;
+              }
+            }
+          }
+        } else if (repeatVal === "weekly") {
+          // 주간 반복 예약 불가
+          const untilDate = parseDateFromInput(repeatUntilVal);
+          if (!untilDate) {
+            showError("반복 예약의 종료일을 선택해 주세요.");
+            return;
+          }
+          if (untilDate < baseDate) {
+            showError("반복 종료일은 시작일 이후여야 합니다.");
+            return;
+          }
+
+          const tempDate = new Date(baseDate);
+          while (tempDate <= untilDate) {
+            if (isWeekday(tempDate)) {
+              const key = formatDateKey(tempDate);
+              if (blockAllDay) {
+                for (let idx = 0; idx < TIME_SLOTS.length; idx++) {
+                  if (isRoomTimeBlocked(tempDate, roomVal, idx)) continue;
+                  if (await addReservation(key, roomVal, idx, blockName, "", null, true)) {
+                    successCount++;
+                  } else {
+                    conflictCount++;
+                  }
+                }
+              } else {
+                for (const timeIndex of selectedTimeIndexes) {
+                  if (isRoomTimeBlocked(tempDate, roomVal, timeIndex)) continue;
+                  if (await addReservation(key, roomVal, timeIndex, blockName, "", null, true)) {
+                    successCount++;
+                  } else {
+                    conflictCount++;
+                  }
+                }
+              }
+            }
+            tempDate.setDate(tempDate.getDate() + 7);
+          }
         }
-      } else if (repeatVal === "weekly") {
-        const untilDate = parseDateFromInput(repeatUntilVal);
-        if (!untilDate) {
-          showError("반복 예약의 종료일을 선택해 주세요.");
-          return;
-        }
-        if (untilDate < baseDate) {
-          showError("반복 종료일은 시작일 이후여야 합니다.");
+      } else {
+        // ▷ 일반 예약 모드
+        const timeIndex = selectedTimeIndexes[0];
+
+        if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
+          showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
           return;
         }
 
-        const tempDate = new Date(baseDate);
-        while (tempDate <= untilDate) {
-          const key = formatDateKey(tempDate);
-          if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal)) {
+        if (repeatVal === "none") {
+          if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal, null, false)) {
             successCount++;
           } else {
             conflictCount++;
           }
-          tempDate.setDate(tempDate.getDate() + 7);
+        } else if (repeatVal === "weekly") {
+          const untilDate = parseDateFromInput(repeatUntilVal);
+          if (!untilDate) {
+            showError("반복 예약의 종료일을 선택해 주세요.");
+            return;
+          }
+          if (untilDate < baseDate) {
+            showError("반복 종료일은 시작일 이후여야 합니다.");
+            return;
+          }
+
+          const repeatGroupId = `${nameVal}:${roomVal}:${timeIndex}:${baseDateKey}:${Date.now()}`;
+          const tempDate = new Date(baseDate);
+
+          while (tempDate <= untilDate) {
+            const key = formatDateKey(tempDate);
+            if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal, repeatGroupId, false)) {
+              successCount++;
+            } else {
+              conflictCount++;
+            }
+            tempDate.setDate(tempDate.getDate() + 7);
+          }
         }
       }
 
       if (conflictCount > 0 && successCount === 0) {
-        showError("선택한 조건으로 이미 예약이 존재하여 등록할 수 없습니다.");
+        showError("선택한 조건으로 이미 예약 또는 예약 불가가 존재하여 등록할 수 없습니다.");
       } else if (conflictCount > 0) {
-        showError(`일부 날짜는 이미 예약이 있어 제외되었으며, ${successCount}건의 예약이 등록되었습니다.`);
+        showError(`일부 시간은 이미 예약(또는 예약 불가)이 존재하여 제외되었으며, ${successCount}건이 등록되었습니다.`);
       }
 
-      await fetchReservations(); // 최신 상태 다시 반영
+      if (successCount > 0) {
+        await fetchReservations();
+        const form = document.getElementById("reservation-form");
+        if (form) form.reset();
+        initDateDefaults();
+        updateBlockModeUI();
+      }
     });
+
   }
 
   // ---- 인증 상태 변화 감지 ----
@@ -1704,6 +2239,7 @@
     } else {
       // 로그아웃 상태
       currentUser = null;
+      blockMode = false; // 예약 불가 모드도 해제
       updateAuthUI();
 
       // 로그아웃 시에는 예약 데이터 비우고 화면도 초기화
