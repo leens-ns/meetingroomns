@@ -1,0 +1,2170 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>남성초등학교 회의실 예약 시스템</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card-bg: #ffffff;
+      --accent: #2563eb;
+      --accent-soft: #e0ecff;
+      --accent-strong: #1d4ed8;
+      --border: #d4d7e5;
+      --text-main: #1f2933;
+      --text-sub: #6b7280;
+      --danger: #dc2626;
+      --slot-free: #f9fafb;
+      --slot-booked: #e0f2fe;
+      --slot-booked-border: #60a5fa;
+      --room-gaonnuri-bg: #fee2e2;
+      --room-gaonnuri-border: #fca5a5;
+      --room-gyomusil-bg: #dcfce7;
+      --room-gyomusil-border: #86efac;
+      --room-gyoyuk-bg: #e0f2fe;
+      --room-gyoyuk-border: #60a5fa;
+      --room-sangdam-bg: #fef3c7;
+      --room-sangdam-border: #facc15;
+      --room-oxford-bg: #f5d0fe;
+      --room-oxford-border: #e879f9;
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e0ebff 0, #f5f7fb 45%, #fdfdfd 100%);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 16px 32px;
+    }
+
+    header.app-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    header.app-header h1 {
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: #0f172a;
+      text-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header.app-header h1 .logo-img {
+      height: 28px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+      backdrop-filter: blur(8px);
+    }
+
+    .user-label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .btn {
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      background: #fff;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-submit {
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 10px 0;
+      justify-content: center;
+    }
+
+    .btn-outline {
+      border-color: var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #eef2ff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .pill {
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1.4fr);
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .admin-actions {
+      margin: 8px 0 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .admin-actions .btn {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-header small {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span.required::after {
+      content: " *";
+      color: var(--danger);
+    }
+
+    .field-label small {
+      font-size: 0.7rem;
+    }
+
+    .field-input,
+    .field-select,
+    .field-text {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 7px 9px;
+      font-size: 0.85rem;
+      outline: none;
+      background: #f9fafb;
+      transition: all 0.12s ease;
+    }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-text:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+      background: #ffffff;
+    }
+
+    .field-text[readonly] {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .inline-fields {
+      display: flex;
+      gap: 8px;
+    }
+
+    .inline-fields > * {
+      flex: 1;
+    }
+
+    .helper-text {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: -2px;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .views-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .view-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .view-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-title span.tag {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+
+    .date-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      padding: 2px 4px;
+      background: #f3f4ff;
+      border: 1px solid #c7d2fe;
+    }
+
+    .date-nav button {
+      border: none;
+      background: transparent;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      border-radius: 999px;
+    }
+
+    .date-nav button:hover {
+      background: rgba(79, 70, 229, 0.08);
+    }
+
+    .date-display {
+      padding: 0 6px;
+      font-weight: 600;
+      color: #111827;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+
+    .date-display:hover {
+      background-color: rgba(79, 70, 229, 0.08);
+    }
+
+    .date-display:active {
+      background-color: rgba(79, 70, 229, 0.16);
+      transform: translateY(1px);
+    }
+
+    .day-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      table-layout: fixed;
+    }
+
+    .day-grid thead {
+      background: #eef2ff;
+    }
+
+    .day-grid th,
+    .day-grid td {
+      border: 1px solid #e5e7eb;
+      padding: 5px 6px;
+      text-align: center;
+    }
+
+    .day-grid th {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .day-grid td.time-cell {
+      font-weight: 600;
+      background: #f9fafb;
+      white-space: normal;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    .day-grid td.time-cell .time-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .day-grid td.time-cell .time-range {
+      font-size: 0.68rem;
+      color: #4b5563;
+      display: block;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+
+    .slot {
+      min-height: 26px;
+      border-radius: 999px;
+      background: var(--slot-free);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 4px;
+    }
+
+    .slot.free span {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .slot.free {
+      cursor: pointer;
+    }
+
+    .slot.booked {
+      background: var(--slot-booked);
+      border: 1px solid var(--slot-booked-border);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15);
+    }
+
+    .slot.booked span {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    .slot-booked-meta {
+      display: block;
+      font-size: 0.7rem;
+      color: #4b5563;
+    }
+
+    .slot.disabled {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+    .slot.disabled span {
+      font-size: 0.7rem;
+      color: #b91c1c;
+      font-weight: 500;
+    }
+
+
+    .slot.booked.room-gaonnuri,
+    .week-slot-item.room-gaonnuri {
+      background: var(--room-gaonnuri-bg);
+      border-color: var(--room-gaonnuri-border);
+    }
+
+    .slot.booked.room-gyomusil,
+    .week-slot-item.room-gyomusil {
+      background: var(--room-gyomusil-bg);
+      border-color: var(--room-gyomusil-border);
+    }
+
+    .slot.booked.room-gyoyuk,
+    .week-slot-item.room-gyoyuk {
+      background: var(--room-gyoyuk-bg);
+      border-color: var(--room-gyoyuk-border);
+    }
+
+    .slot.booked.room-sangdam,
+    .week-slot-item.room-sangdam {
+      background: var(--room-sangdam-bg);
+      border-color: var(--room-sangdam-border);
+    }
+
+    .slot.booked.room-oxford,
+    .week-slot-item.room-oxford {
+      background: var(--room-oxford-bg);
+      border-color: var(--room-oxford-border);
+    }
+
+    .week-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      table-layout: fixed;
+    }
+
+    .week-grid thead {
+      background: #f3f4ff;
+    }
+
+    .week-grid th,
+    .week-grid td {
+      border: 1px solid #e5e7eb;
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+
+    .week-grid th {
+      font-weight: 600;
+      color: #374151;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .week-grid td.room-cell {
+      font-weight: 600;
+      background: #f9fafb;
+      white-space: normal;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .week-slot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .week-slot-item {
+      border-radius: 10px;
+      padding: 3px 6px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .week-slot-time {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1d4ed8;
+      text-align: center;
+      width: 100%;
+    }
+
+    .week-slot-name {
+      font-size: 0.7rem;
+      color: #374151;
+      text-align: center;
+      width: 100%;
+    }
+
+    .week-slot-note {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .empty-week-cell {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .legend-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 0.7rem;
+      color: #6b7280;
+      flex-wrap: wrap;
+    }
+
+    .legend-row .legend-left,
+    .legend-row .legend-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+
+    .legend-dot.booked {
+      background: var(--slot-booked);
+      border-color: var(--slot-booked-border);
+    }
+
+    .legend-dot.disabled {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .alert {
+      font-size: 0.75rem;
+      border-radius: 10px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-icon {
+      font-size: 0.9rem;
+      line-height: 1;
+      margin-top: 1px;
+    }
+
+    .alert-text {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .layout-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      header.app-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header.app-header h1 {
+        font-size: clamp(0.9rem, 4vw, 1.4rem);
+        white-space: normal;
+      }
+
+      .auth-box {
+        align-self: stretch;
+        justify-content: space-between;
+      }
+
+      /* 모바일에서 표/텍스트가 화면을 넘지 않도록 축소 */
+      .day-grid,
+      .week-grid {
+        font-size: 0.7rem;
+      }
+
+      .day-grid th,
+      .day-grid td,
+      .week-grid th,
+      .week-grid td {
+        padding: 4px 3px;
+      }
+
+      .day-grid td.time-cell .time-label {
+        font-size: 0.66rem;
+      }
+
+      .day-grid td.time-cell .time-range {
+        font-size: 0.6rem;
+      }
+
+      .slot span {
+        font-size: 0.64rem;
+      }
+    }
+
+  
+    /* 내 예약 / 다른 사람 예약 색상 */
+    .slot.booked.my-reservation,
+    .week-slot-item.my-reservation {
+      background: #bfdbfe;
+      border: 1px solid #1d4ed8;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+    }
+
+    .slot.booked.my-reservation span,
+    .week-slot-item.my-reservation .week-slot-name,
+    .week-slot-item.my-reservation .week-slot-time {
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .slot.booked.other-reservation,
+    .week-slot-item.other-reservation {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      box-shadow: none;
+    }
+
+    .slot.booked.other-reservation span,
+    .week-slot-item.other-reservation .week-slot-name,
+    .week-slot-item.other-reservation .week-slot-time {
+      color: #a16207;
+      font-weight: 500;
+    }
+
+    .legend-dot.my-res-dot {
+      background: #bfdbfe;
+      border-color: #1d4ed8;
+    }
+
+    .legend-dot.other-res-dot {
+      background: #fffbeb;
+      border-color: #fef3c7;
+    }
+
+    /* 주간 범례 + 토글 영역 */
+    .week-legend-row {
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .week-legend-row .legend-left {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .week-legend-row .legend-right {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #4b5563;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .toggle-input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #e5e7eb;
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      top: 2px;
+      background-color: #ffffff;
+      transition: 0.2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+    }
+
+    .toggle-input:checked + .toggle-slider {
+      background-color: #2563eb;
+    }
+
+    .toggle-input:checked + .toggle-slider::before {
+      transform: translateX(16px);
+    }
+
+    .btn-toggle-on {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #b91c1c;
+    }
+
+    .week-slot-item.blocked-item {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .week-slot-item.blocked-item .week-slot-time,
+    .week-slot-item.blocked-item .week-slot-name {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+
+    .day-grid th.room-header {
+      cursor: default;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .block-mode-active .day-grid th.room-header {
+      cursor: pointer;
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1><img src="https://nisb.kr/plugins/custom_plugin/simple_page/assets/img/branding/logo4.png?date_ver=2025-11" alt="남성초 로고" class="logo-img" />남성초등학교 회의실 예약 시스템</h1>
+      <div class="auth-box">
+        <div>
+          <div class="user-label">
+            <span id="auth-status">로그인 필요</span>
+          </div>
+          <div class="user-name" id="auth-user-name">@nsworld.net 계정으로 로그인하세요</div>
+        </div>
+        <div>
+          <button id="login-btn" class="btn btn-primary">구글 로그인</button>
+          <button id="logout-btn" class="btn btn-outline hidden">로그아웃</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 관리자용 일괄 취소 버튼 (관리자에게만 표시) -->
+    <section class="admin-actions hidden" id="admin-actions">
+      <button type="button" class="btn btn-outline" id="toggle-block-mode">예약 불가 일자 설정</button>
+      <button type="button" class="btn btn-outline" id="cancel-day-btn">일간 예약 일괄 취소</button>
+      <button type="button" class="btn btn-outline" id="cancel-week-btn">주간 예약 일괄 취소</button>
+    </section>
+
+
+    <main class="layout-main">
+      <!-- 예약 폼 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>예약 만들기</h2>
+          <span class="badge">@nsworld.net 전용</span>
+        </div>
+
+        <div id="auth-alert" class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-text">
+            회의실 예약을 하려면 먼저 <strong>@nsworld.net</strong> 구글 계정으로 로그인해야 합니다.
+          </div>
+        </div>
+
+        <form id="reservation-form">
+          <div class="field-group">
+            <label class="field-label">
+              <span class="required">예약 날짜</span>
+            </label>
+            <input type="date" id="date-input" class="field-input" required />
+          </div>
+
+          <div class="inline-fields">
+            <div class="field-group">
+              <label class="field-label">
+                <span class="required">회의실</span>
+              </label>
+              <select id="room-select" class="field-select" required>
+                <option value="">선택하세요</option>
+                <option value="가온누리">가온누리</option>
+                <option value="교무실">교무실</option>
+                <option value="교육문화관">교육문화관</option>
+                <option value="상담실">상담실</option>
+                <option value="옥스퍼드 교실">옥스퍼드 교실</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">
+                <span class="required">시간</span>
+              </label>
+              <select id="time-select" class="field-select" required>
+                <option value="">선택하세요</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-group hidden" id="block-room-options">
+            <label class="field-label">
+              <span>예약 불가 옵션(관리자)</span>
+            </label>
+            <label style="font-size:0.78rem; color:#4b5563;">
+              <input type="checkbox" id="block-room-all-day" style="margin-right:4px;">
+              이 날짜의 해당 회의실 <strong>전체 시간</strong>을 예약 불가로 설정
+            </label>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>반복 예약</span>
+            </label>
+            <div class="inline-fields">
+              <select id="repeat-select" class="field-select">
+                <option value="none">반복 없음</option>
+                <option value="weekly">매주 같은 요일 반복</option>
+              </select>
+              <input type="date" id="repeat-until" class="field-input" />
+            </div>
+            <div class="helper-text">
+              반복 예약을 설정하는 경우, <strong>종료일</strong>까지 같은 요일・시간・공간으로 예약됩니다.
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>예약자 이름</span>
+              <small>로그인한 계정 이름으로 자동 연동</small>
+            </label>
+            <input type="text" id="reserver-name" class="field-text" readonly placeholder="로그인 후 자동 입력됩니다." />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <span>비고(선택)</span>
+            </label>
+            <input type="text" id="note-input" class="field-input" placeholder="간단한 용도, 모임 이름 등을 적어주세요." />
+          </div>
+
+          <div id="form-error" class="alert alert-error hidden">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-text" id="form-error-text"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-submit" style="width:100%; margin-top:6px;">
+            예약 등록
+          </button>
+        </form>
+
+        <p class="helper-text" style="margin-top:10px;">
+          ※ 같은 날짜・시간・회의실에 이미 예약이 있는 경우, <strong>중복 예약이 자동으로 차단</strong>됩니다.
+        </p>
+      </section>
+
+
+      <!-- 보기 영역: 위쪽 일간 예약 현황 / 아래쪽 주간 예약 현황 -->
+      <section class="views-column">
+        <!-- 일간 예약 현황 -->
+        <section class="card">
+          <div class="view-title-row">
+            <div class="view-title">
+              <span>일간 예약 현황</span>
+              <span class="tag">선택한 날짜 기준</span>
+            </div>
+            <div class="date-nav">
+              <button type="button" id="prev-day">◀</button>
+              <span class="date-display" id="day-display"></span>
+              <button type="button" id="next-day">▶</button>
+            </div>
+          </div>
+
+          <table class="day-grid" id="day-grid">
+            <thead>
+              <tr>
+                <th>시간</th>
+                <th class="room-header">가온누리</th>
+                <th class="room-header">교무실</th>
+                <th class="room-header">교육문화관</th>
+                <th class="room-header">상담실</th>
+                <th class="room-header">옥스퍼드 교실</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS로 채움 -->
+            </tbody>
+          </table>
+
+          <div class="legend-row">
+            <div class="legend-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
+            </div>
+            <div class="legend-right">
+              <div class="legend-item">
+                <span class="legend-dot"></span> <span>예약 가능</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot disabled"></span> <span>예약 불가</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 주간 예약 현황 -->
+        <section class="card">
+          <div class="view-title-row">
+            <div class="view-title">
+              <span>주간 예약 현황</span>
+              <span class="tag">월요일 ~ 금요일</span>
+            </div>
+            <div class="date-nav">
+              <button type="button" id="prev-week">◀</button>
+              <span class="date-display" id="week-display"></span>
+              <button type="button" id="next-week">▶</button>
+            </div>
+          </div>
+
+          <table class="week-grid" id="week-grid">
+            <thead>
+              <tr>
+                <th>회의실</th>
+                <th>월</th>
+                <th>화</th>
+                <th>수</th>
+                <th>목</th>
+                <th>금</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS로 채움 -->
+            </tbody>
+          </table>
+
+          <div class="legend-row week-legend-row">
+            <div class="legend-left">
+              <div class="legend-item">
+                <span class="legend-dot my-res-dot"></span> <span>내 예약</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot other-res-dot"></span> <span>다른 사람 예약</span>
+              </div>
+            </div>
+            <div class="legend-right">
+              <label class="toggle-label">
+                <span><strong>내 예약만 보기</strong></span>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="my-week-only-toggle" class="toggle-input" />
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase 설정
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvlHnsZJ1kFBw7LXTtwlheShJk96yH960",
+    authDomain: "namsung-meeting-room-7811f.firebaseapp.com",
+    projectId: "namsung-meeting-room-7811f",
+    storageBucket: "namsung-meeting-room-7811f.firebasestorage.app",
+    messagingSenderId: "863278514186",
+    appId: "1:863278514186:web:827dfd1ffc8947918e1ff3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
+
+<script>
+  // ---- 상수 정의 ----
+  const ROOMS = ["가온누리", "교무실", "교육문화관", "상담실", "옥스퍼드 교실"];
+
+  const ROOM_CLASS_MAP = {
+    "가온누리": "room-gaonnuri",
+    "교무실": "room-gyomusil",
+    "교육문화관": "room-gyoyuk",
+    "상담실": "room-sangdam",
+    "옥스퍼드 교실": "room-oxford"
+  };
+
+
+  const TIME_SLOTS = [
+    "08:30~08:55",
+    "09:00~09:40",
+    "09:45~10:25",
+    "10:30~11:10",
+    "11:15~11:55",
+    "12:00~12:40",
+    "12:40~13:25",
+    "13:30~14:10",
+    "14:15~14:55",
+    "15:00~15:40",
+    "15:40~16:30"
+  ];
+
+
+  const TIME_LABELS = [
+    "아침시간",
+    "1교시",
+    "2교시",
+    "3교시",
+    "4교시",
+    "5교시",
+    "점심시간",
+    "6교시",
+    "7교시",
+    "8교시",
+    "일과후"
+  ];
+
+  // Firestore 연동용 예약 캐시
+  let reservations = []; // {id, date(YYYY-MM-DD), room, timeSlotIndex, name, note, blocked?}
+  let weekShowMyOnly = false;
+
+  let currentUser = null; // {name, email}
+  let selectedDate = new Date();
+  let weekBaseDate = new Date();
+
+  let blockMode = false; // 관리자용 예약 불가 설정 모드
+
+  function isAdmin() {
+    return currentUser && currentUser.email === "leens@nsworld.net";
+  }
+
+
+  // ---- 유틸 함수 ----
+  function formatDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function parseDateFromInput(value) {
+    if (!value) return null;
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function formatKoreanDate(date) {
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    const w = dayNames[date.getDay()];
+    return `${y}. ${m}. ${d}. (${w})`;
+  }
+
+  function getWeekRange(date) {
+    const base = new Date(date);
+    const day = base.getDay(); // 0(일)~6(토)
+    const diffToMonday = (day + 6) % 7;
+    const monday = new Date(base);
+    monday.setDate(base.getDate() - diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { monday, sunday };
+  }
+
+  function hasConflict(dateKey, room, timeSlotIndex) {
+    return reservations.some(
+      (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === timeSlotIndex
+    );
+  }
+
+  function isWeekday(date) {
+    const day = date.getDay(); // 0:일 ~ 6:토
+    return day >= 1 && day <= 5; // 월~금만 허용
+  }
+
+
+  function isConsultingBlocked(date, room) {
+    if (room !== "상담실") return false;
+    const cutoff = new Date(2026, 1, 28); // 2026-02-28
+    if (date > cutoff) return false;
+    const day = date.getDay(); // 0(일)~6(토)
+    return day === 4 || day === 5; // 목(4), 금(5)
+  }
+
+  function isRoomTimeBlocked(date, room, timeSlotIndex) {
+    const day = date.getDay(); // 0(일)~6(토)
+
+    // 1) 상담실: 기존 규칙 (2026.2.28까지 목/금 전체 시간대)
+    if (isConsultingBlocked(date, room)) {
+      return true;
+    }
+
+    // 2) 옥스퍼드 교실: 매일 점심시간(12:40~13:25, TIME_LABELS index 6) 예약 불가
+    if (room === "옥스퍼드 교실" && timeSlotIndex === 6) {
+      return true;
+    }
+
+    // 3) 교무실: 월, 금요일 7, 8교시 예약 불가
+    // 7교시: index 8, 8교시: index 9
+    if (room === "교무실" && (day === 1 || day === 5) && (timeSlotIndex === 8 || timeSlotIndex === 9)) {
+      return true;
+    }
+
+    // 4) 가온누리: 2026.2.28까지 월, 화, 금요일 3,4,5,6교시 예약 불가
+    // 3교시: index 3, 4교시: 4, 5교시: 5, 6교시: 7
+    if (room === "가온누리") {
+      const cutoffGaon = new Date(2026, 1, 28); // 2026-02-28
+      if (date <= cutoffGaon &&
+          (day === 1 || day === 2 || day === 5) &&
+          ([3,4,5,7].includes(timeSlotIndex))) {
+        return true;
+      }
+    }
+
+    // 5) 교육문화관: 2026.2.28까지 월, 화, 금요일 3,4,5,6교시 예약 불가
+    // 3교시: index 3, 4교시: 4, 5교시: 5, 6교시: 7
+    //      + 점심시간(12:40~13:25, index 6)은 기간 상관없이 항상 예약 불가
+    if (room === "교육문화관") {
+      // 점심시간은 항상 예약 불가
+      if (timeSlotIndex === 6) {
+        return true;
+      }
+      const cutoffEdu = new Date(2026, 1, 28); // 2026-02-28
+      if (date <= cutoffEdu &&
+          (day === 1 || day === 2 || day === 5) &&
+          ([3,4,5,7].includes(timeSlotIndex))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async function handleQuickReserve(room, timeIndex) {
+    clearError();
+
+    if (!currentUser) {
+      showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+      return;
+    }
+
+    const date = new Date(selectedDate);
+    const dateKey = formatDateKey(date);
+    const existing = reservations.find(
+      (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === timeIndex
+    );
+
+    const currentName = currentUser.name || currentUser.email;
+
+    // 이미 예약 또는 예약 불가가 설정된 상태라면: 기존 로직 (취소/해제)
+    if (existing) {
+      await cancelReservation(existing);
+      return;
+    }
+
+    // 비어 있는 상태일 때
+    if (!isWeekday(date)) {
+      showError("예약은 월요일부터 금요일까지만 가능합니다.");
+      return;
+    }
+
+    if (isRoomTimeBlocked(date, room, timeIndex)) {
+      showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
+      return;
+    }
+
+    // 관리자 + 예약 불가 모드인 경우: 예약 불가로 설정
+    if (blockMode && isAdmin()) {
+      const blockName = "예약 불가";
+      if (await addReservation(dateKey, room, timeIndex, blockName, "", null, true)) {
+        await fetchReservations();
+      } else {
+        showError("해당 시간에는 이미 예약 또는 예약 불가가 설정되어 있습니다.");
+      }
+      return;
+    }
+
+    // 일반 예약
+    if (await addReservation(dateKey, room, timeIndex, currentName, "", null, false)) {
+      await fetchReservations();
+    } else {
+      showError("선택한 시간에는 이미 예약이 존재합니다.");
+    }
+  }
+
+
+  async function handleDayRoomHeaderClick(room) {
+    if (!currentUser || !isAdmin() || !blockMode) {
+      return;
+    }
+
+    clearError();
+
+    const date = new Date(selectedDate);
+    const dateKey = formatDateKey(date);
+    if (!isWeekday(date)) {
+      showError("예약 불가 설정은 월요일부터 금요일까지만 가능합니다.");
+      return;
+    }
+
+    const todays = reservations.filter((r) => r.date === dateKey && r.room === room);
+
+    // 예약 불가를 설정할 수 있는 시간 슬롯(고정 예약 불가 시간 제외)
+    const allowedIndexes = [];
+    for (let idx = 0; idx < TIME_SLOTS.length; idx++) {
+      if (!isRoomTimeBlocked(date, room, idx)) {
+        allowedIndexes.push(idx);
+      }
+    }
+    if (allowedIndexes.length === 0) {
+      return;
+    }
+
+    const blockedIndexes = new Set(
+      todays
+        .filter((r) => r.blocked && allowedIndexes.includes(r.timeSlotIndex))
+        .map((r) => r.timeSlotIndex)
+    );
+
+    const isAllBlocked = blockedIndexes.size === allowedIndexes.length;
+
+    if (isAllBlocked) {
+      // 이미 해당 회의실의 모든 허용 시간대가 예약 불가 상태인 경우 → 예약 불가 해제
+      const toUnblock = todays.filter(
+        (r) => r.blocked && allowedIndexes.includes(r.timeSlotIndex)
+      );
+      if (toUnblock.length === 0) return;
+
+      const ok = confirm(`${room}의 예약 불가 시간을 모두 해제하시겠습니까?`);
+      if (!ok) return;
+
+      await Promise.all(toUnblock.map((r) => deleteReservation(r.id)));
+      await fetchReservations();
+    } else {
+      // 아직 전체가 예약 불가가 아닌 경우 → 빈 슬롯을 예약 불가로 일괄 설정
+      const blockName = "예약 불가";
+      let changed = 0;
+
+      for (const idx of allowedIndexes) {
+        const existing = todays.find((r) => r.timeSlotIndex === idx);
+        if (existing) {
+          // 이미 예약(또는 예약 불가)이 있는 경우에는 건드리지 않음
+          continue;
+        }
+        const ok = await addReservation(dateKey, room, idx, blockName, "", null, true);
+        if (ok) changed++;
+      }
+
+      if (changed > 0) {
+        await fetchReservations();
+      } else {
+        showError("추가로 예약 불가로 설정할 수 있는 시간이 없습니다.");
+      }
+    }
+  }
+
+async function handleWeekItemClick(reservation) {
+    await cancelReservation(reservation);
+  }
+
+  // ---- Firestore 연동 ----
+  async function fetchReservations() {
+    const snapshot = await db.collection("reservations").get();
+
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(now.getDate() - 14);
+    const cutoffKey = formatDateKey(cutoff);
+
+    const active = [];
+    const toDelete = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateKey = data.date;
+      if (dateKey && dateKey < cutoffKey) {
+        toDelete.push(doc.ref);
+      } else {
+        active.push({
+          id: doc.id,
+          ...data
+        });
+      }
+    });
+
+    if (toDelete.length > 0) {
+      const batch = db.batch();
+      toDelete.forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+
+    reservations = active;
+    renderDayView();
+    renderWeekView();
+  }
+
+  async function addReservation(dateKey, room, timeSlotIndex, name, note, repeatGroupId = null, blocked = false) {
+    if (hasConflict(dateKey, room, timeSlotIndex)) {
+      return false;
+    }
+
+    const payload = {
+      date: dateKey,
+      room,
+      timeSlotIndex,
+      name,
+      note: note || ""
+    };
+
+    if (repeatGroupId) {
+      payload.repeatGroupId = repeatGroupId;
+    }
+    if (blocked) {
+      payload.blocked = true;
+    }
+
+    const docRef = await db.collection("reservations").add(payload);
+
+    reservations.push({
+      id: docRef.id,
+      ...payload
+    });
+
+    return true;
+  }
+
+  async function deleteReservation(id) {
+    await db.collection("reservations").doc(id).delete();
+    reservations = reservations.filter((r) => r.id !== id);
+  }
+
+  async function cancelReservation(reservation) {
+    clearError();
+
+    if (!currentUser) {
+      showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+      return;
+    }
+
+    const currentName = currentUser.name || currentUser.email;
+    const amAdmin = isAdmin();
+    const isOwn = reservation.name === currentName;
+
+    // 예약 불가(차단) 해제 처리
+    if (reservation.blocked) {
+      if (!amAdmin) {
+        showError("예약 불가 시간은 관리자만 해제할 수 있습니다.");
+        return;
+      }
+      const okUnblock = confirm("이 예약 불가 시간을 해제하시겠습니까?\n해제 후에는 다시 예약이 가능해집니다.");
+      if (!okUnblock) return;
+      await deleteReservation(reservation.id);
+      await fetchReservations();
+      return;
+    }
+
+    // 일반 사용자는 자기 예약만 취소 가능
+    if (!amAdmin && !isOwn) {
+      showError("다른 사용자의 예약은 취소할 수 없습니다.");
+      return;
+    }
+
+    // 반복 예약 처리
+    if (reservation.repeatGroupId) {
+      const groupReservations = reservations.filter(
+        (r) => r.repeatGroupId === reservation.repeatGroupId
+      );
+
+      if (groupReservations.length > 1) {
+        // 반복 예약: 전체/이번만 선택
+        const applyAll = confirm(
+          `이 예약은 반복 예약입니다.\n\n[확인]: 반복 예약 전체 (${groupReservations.length}건) 취소\n[취소]: 이 일정만 취소`
+        );
+
+        if (applyAll) {
+          await Promise.all(groupReservations.map((r) => deleteReservation(r.id)));
+        } else {
+          await deleteReservation(reservation.id);
+        }
+        await fetchReservations();
+        return;
+      } else {
+        // 반복 그룹이지만 현재 남은 일정이 1건뿐인 경우 → 단일 예약과 동일하게 처리
+        if (isOwn) {
+          // 본인 예약(일반/관리자 공통): 확인 없이 바로 취소
+          await deleteReservation(reservation.id);
+          await fetchReservations();
+          return;
+        } else if (amAdmin) {
+          // 관리자 + 타인 예약: 한 번 확인 후 취소
+          const ok = confirm("이 예약을 취소하시겠습니까?");
+          if (!ok) return;
+          await deleteReservation(reservation.id);
+          await fetchReservations();
+          return;
+        }
+      }
+    } else {
+      // 반복 예약이 아닌 경우
+      if (isOwn) {
+        // 본인 예약(일반/관리자 공통): 확인 없이 바로 취소
+        await deleteReservation(reservation.id);
+        await fetchReservations();
+        return;
+      } else if (amAdmin) {
+        // 관리자 + 타인 단일 예약: 한 번 확인 후 취소
+        const ok = confirm("이 예약을 취소하시겠습니까?");
+        if (!ok) return;
+        await deleteReservation(reservation.id);
+        await fetchReservations();
+        return;
+      }
+    }
+  }
+
+async function deleteReservationsBulk(filterFn, label) {
+    const targets = reservations.filter(filterFn);
+    if (targets.length === 0) {
+      alert("취소할 예약이 없습니다.");
+      return;
+    }
+    const ok = confirm(`${label} 예약 ${targets.length}건을 모두 취소하시겠습니까?`);
+    if (!ok) return;
+
+    await Promise.all(targets.map((r) => deleteReservation(r.id)));
+    await fetchReservations();
+  }
+
+  async function handleBulkDayCancel() {
+    if (!currentUser || !isAdmin()) {
+      showError("일간 예약 일괄 취소는 관리자만 사용할 수 있습니다.");
+      return;
+    }
+    const dateKey = formatDateKey(selectedDate);
+    await deleteReservationsBulk((r) => r.date === dateKey, "해당 날짜");
+  }
+
+  async function handleBulkWeekCancel() {
+    if (!currentUser || !isAdmin()) {
+      showError("주간 예약 일괄 취소는 관리자만 사용할 수 있습니다.");
+      return;
+    }
+    const { monday, sunday } = getWeekRange(weekBaseDate);
+    const mondayKey = formatDateKey(monday);
+    const sundayKey = formatDateKey(sunday);
+
+    await deleteReservationsBulk(
+      (r) => r.date >= mondayKey && r.date <= sundayKey,
+      "해당 주간"
+    );
+  }
+
+  // ---- UI 렌더링 ----
+  function renderDayView() {
+    const tbody = document.querySelector("#day-grid tbody");
+    tbody.innerHTML = "";
+    const dateKey = formatDateKey(selectedDate);
+    const weekend = !isWeekday(selectedDate);
+
+    TIME_SLOTS.forEach((slot, index) => {
+      const tr = document.createElement("tr");
+
+      const timeTd = document.createElement("td");
+      timeTd.className = "time-cell";
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "time-label";
+      labelDiv.textContent = TIME_LABELS[index];
+      const rangeDiv = document.createElement("div");
+      rangeDiv.className = "time-range";
+      rangeDiv.textContent = slot;
+      timeTd.appendChild(labelDiv);
+      timeTd.appendChild(rangeDiv);
+      tr.appendChild(timeTd);
+
+      ROOMS.forEach((room) => {
+        const td = document.createElement("td");
+        const slotDiv = document.createElement("div");
+
+        const staticBlocked = isRoomTimeBlocked(selectedDate, room, index);
+
+        if (weekend || staticBlocked) {
+          // 토/일 또는 회의실/시간대별 고정 예약 불가
+          slotDiv.className = "slot disabled";
+          const main = document.createElement("span");
+          main.textContent = "예약 불가";
+          slotDiv.appendChild(main);
+        } else {
+          const existing = reservations.find(
+            (r) => r.date === dateKey && r.room === room && r.timeSlotIndex === index
+          );
+
+          if (existing && existing.blocked) {
+            // 관리자 설정 예약 불가 시간
+            slotDiv.className = "slot disabled";
+            const main = document.createElement("span");
+            main.textContent = "예약 불가";
+            slotDiv.appendChild(main);
+
+            if (isAdmin()) {
+              slotDiv.style.cursor = "pointer";
+              slotDiv.addEventListener("click", () => {
+                cancelReservation(existing);
+              });
+            }
+          } else if (existing) {
+            const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
+            const isMine = currentName && existing.name === currentName;
+            const ownerClass = isMine ? "my-reservation" : "other-reservation";
+            slotDiv.className = "slot booked " + ownerClass;
+            const main = document.createElement("span");
+            main.textContent = existing.name; // 예약자명만 표시
+            slotDiv.appendChild(main);
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          } else {
+            slotDiv.className = "slot free";
+            const main = document.createElement("span");
+            main.textContent = "예약 가능";
+            slotDiv.appendChild(main);
+            // 빠른 예약: 빈 슬롯 클릭 시 즉시 예약 또는 예약 불가 설정
+            slotDiv.addEventListener("click", () => {
+              handleQuickReserve(room, index);
+            });
+          }
+        }
+
+        td.appendChild(slotDiv);
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("day-display").textContent = formatKoreanDate(selectedDate);
+  }
+
+function renderWeekView() {
+    const tbody = document.querySelector("#week-grid tbody");
+    tbody.innerHTML = "";
+
+    const { monday, sunday } = getWeekRange(weekBaseDate);
+
+    document.getElementById("week-display").textContent =
+      `${monday.getFullYear()}. ${monday.getMonth() + 1}. ${monday.getDate()} ~ ` +
+      `${sunday.getFullYear()}. ${sunday.getMonth() + 1}. ${sunday.getDate()}`;
+
+    ROOMS.forEach((room) => {
+      const tr = document.createElement("tr");
+
+      const roomTd = document.createElement("td");
+      roomTd.className = "room-cell";
+      roomTd.textContent = room;
+      tr.appendChild(roomTd);
+
+      for (let i = 0; i < 5; i++) {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + i);
+        const dateKey = formatDateKey(dayDate);
+
+        const td = document.createElement("td");
+
+        let roomReservations = reservations
+          .filter((r) => r.date === dateKey && r.room === room)
+          .sort((a, b) => a.timeSlotIndex - b.timeSlotIndex);
+
+        if (weekShowMyOnly && currentUser) {
+          const currentName = currentUser.name || currentUser.email;
+          roomReservations = roomReservations.filter((r) => !r.blocked && r.name === currentName);
+        }
+
+        if (roomReservations.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty-week-cell";
+          empty.textContent = "-";
+          td.appendChild(empty);
+        } else {
+          const list = document.createElement("div");
+          list.className = "week-slot-list";
+
+          roomReservations.forEach((r) => {
+            const item = document.createElement("div");
+
+            if (r.blocked) {
+              // 예약 불가 표시
+              item.className = "week-slot-item blocked-item";
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "week-slot-time";
+              timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
+
+              const nameSpan = document.createElement("span");
+              nameSpan.className = "week-slot-name";
+              nameSpan.textContent = "예약 불가";
+
+              item.appendChild(timeSpan);
+              item.appendChild(nameSpan);
+            } else {
+              const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
+              const isMine = currentName && r.name === currentName;
+              const ownerClass = isMine ? "my-reservation" : "other-reservation";
+              item.className = "week-slot-item " + ownerClass;
+
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "week-slot-time";
+              timeSpan.textContent = TIME_SLOTS[r.timeSlotIndex];
+
+              const nameSpan = document.createElement("span");
+              nameSpan.className = "week-slot-name";
+              nameSpan.textContent = r.name; // 예약자명만 표시
+
+              item.appendChild(timeSpan);
+              item.appendChild(nameSpan);
+            }
+
+            item.addEventListener("click", () => {
+              handleWeekItemClick(r);
+            });
+
+            list.appendChild(item);
+          });
+
+          td.appendChild(list);
+        }
+
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+  }
+
+function syncDateInputs() {
+    const dateInput = document.getElementById("date-input");
+    dateInput.value = formatDateKey(selectedDate);
+  }
+
+  function showError(message) {
+    const box = document.getElementById("form-error");
+    const textEl = document.getElementById("form-error-text");
+    textEl.textContent = message;
+    box.classList.remove("hidden");
+  }
+
+  function clearError() {
+    const box = document.getElementById("form-error");
+    box.classList.add("hidden");
+  }
+
+  
+  function updateAuthUI() {
+    const status = document.getElementById("auth-status");
+    const name = document.getElementById("auth-user-name");
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const reserverName = document.getElementById("reserver-name");
+    const authAlert = document.getElementById("auth-alert");
+    const adminActions = document.getElementById("admin-actions");
+
+    if (currentUser) {
+      status.textContent = "로그인됨";
+      name.textContent = currentUser.email;
+      reserverName.value = currentUser.name || currentUser.email;
+      authAlert.classList.add("hidden");
+      loginBtn.classList.add("hidden");
+      logoutBtn.classList.remove("hidden");
+    } else {
+      status.textContent = "로그인 필요";
+      name.textContent = "@nsworld.net 계정으로 로그인하세요";
+      reserverName.value = "";
+      authAlert.classList.remove("hidden");
+      loginBtn.classList.remove("hidden");
+      logoutBtn.classList.add("hidden");
+    }
+
+    if (adminActions) {
+      if (isAdmin()) {
+        adminActions.classList.remove("hidden");
+      } else {
+        adminActions.classList.add("hidden");
+      }
+    }
+
+    // 관리자 모드 UI 동기화
+    updateBlockModeUI();
+  }
+
+  function updateBlockModeUI() {
+    const blockBtn = document.getElementById("toggle-block-mode");
+    const blockOptions = document.getElementById("block-room-options");
+    const blockAllDay = document.getElementById("block-room-all-day");
+
+    const active = blockMode && isAdmin();
+
+    if (blockBtn) {
+      if (active) {
+        blockBtn.classList.add("btn-toggle-on");
+        blockBtn.textContent = "예약 불가 일자 설정 중";
+        document.body.classList.add("block-mode-active");
+      } else {
+        blockBtn.classList.remove("btn-toggle-on");
+        blockBtn.textContent = "예약 불가 일자 설정";
+        document.body.classList.remove("block-mode-active");
+      }
+    }
+
+    if (blockOptions) {
+      if (active) {
+        blockOptions.classList.remove("hidden");
+      } else {
+        blockOptions.classList.add("hidden");
+        if (blockAllDay) blockAllDay.checked = false;
+      }
+    }
+  }
+
+// ---- Google 로그인 ----
+  function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    auth.signInWithPopup(provider)
+      .then((result) => {
+        const user = result.user;
+        const email = user.email || "";
+        const name = user.displayName || email.split("@")[0];
+
+        if (!email.endsWith("@nsworld.net")) {
+          alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
+          return auth.signOut();
+        }
+
+        currentUser = { name, email };
+        updateAuthUI();
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("로그인 중 오류가 발생했습니다.");
+      });
+  }
+
+  function googleLogout() {
+    auth.signOut().then(() => {
+      currentUser = null;
+      blockMode = false;
+      updateAuthUI();
+    });
+  }
+
+  // ---- 초기화 ----
+  function initTimeOptions() {
+    const select = document.getElementById("time-select");
+    TIME_SLOTS.forEach((slot, index) => {
+      const opt = document.createElement("option");
+      opt.value = String(index);
+      opt.textContent = slot;
+      select.appendChild(opt);
+    });
+  }
+
+  function initDateDefaults() {
+    const dateInput = document.getElementById("date-input");
+    const todayKey = formatDateKey(selectedDate);
+    dateInput.value = todayKey;
+    weekBaseDate = new Date(selectedDate);
+  }
+
+  function attachEventHandlers() {
+    document.getElementById("login-btn").addEventListener("click", googleLogin);
+    document.getElementById("logout-btn").addEventListener("click", googleLogout);
+
+    const dayBulkBtn = document.getElementById("cancel-day-btn");
+    if (dayBulkBtn) {
+      dayBulkBtn.addEventListener("click", handleBulkDayCancel);
+    }
+    const weekBulkBtn = document.getElementById("cancel-week-btn");
+    if (weekBulkBtn) {
+      weekBulkBtn.addEventListener("click", handleBulkWeekCancel);
+    }
+
+    const blockModeBtn = document.getElementById("toggle-block-mode");
+    if (blockModeBtn) {
+      blockModeBtn.addEventListener("click", () => {
+        if (!isAdmin()) {
+          showError("예약 불가 일자 설정은 관리자만 사용할 수 있습니다.");
+          return;
+        }
+        blockMode = !blockMode;
+        updateBlockModeUI();
+      });
+    }
+
+
+    // ▷ 일간 예약 현황 헤더(회의실명) 클릭 시, 해당 회의실 하루 전체 예약 불가 토글 (관리자 + 예약 불가 모드에서만)
+    const dayHeaderRow = document.querySelector("#day-grid thead tr");
+    if (dayHeaderRow) {
+      const headerCells = dayHeaderRow.querySelectorAll("th.room-header");
+      headerCells.forEach((th, idx) => {
+        const room = ROOMS[idx];
+        th.addEventListener("click", () => {
+          if (blockMode && isAdmin()) {
+            handleDayRoomHeaderClick(room);
+          }
+        });
+      });
+    }
+
+    // ▷ 일간 날짜 텍스트 클릭 시 오늘로 이동
+    const dayDisplayEl = document.getElementById("day-display");
+    if (dayDisplayEl) {
+      dayDisplayEl.addEventListener("click", () => {
+        const today = new Date();
+        selectedDate = new Date(today);
+        weekBaseDate = new Date(today);
+        syncDateInputs();
+        renderDayView();
+        renderWeekView();
+      });
+    }
+
+    // ▷ 주간 기간 텍스트 클릭 시 오늘이 속한 주간으로 이동
+    const weekDisplayEl = document.getElementById("week-display");
+    if (weekDisplayEl) {
+      weekDisplayEl.addEventListener("click", () => {
+        const today = new Date();
+        selectedDate = new Date(today);
+        weekBaseDate = new Date(today);
+        syncDateInputs();
+        renderDayView();
+        renderWeekView();
+      });
+    }
+
+    document.getElementById("date-input").addEventListener("change", (e) => {
+      const d = parseDateFromInput(e.target.value);
+      if (d) {
+        selectedDate = d;
+        weekBaseDate = new Date(d);
+        renderDayView();
+        renderWeekView();
+      }
+    });
+
+    document.getElementById("prev-day").addEventListener("click", () => {
+      selectedDate.setDate(selectedDate.getDate() - 1);
+      weekBaseDate = new Date(selectedDate);
+      syncDateInputs();
+      renderDayView();
+      renderWeekView();
+    });
+
+    document.getElementById("next-day").addEventListener("click", () => {
+      selectedDate.setDate(selectedDate.getDate() + 1);
+      weekBaseDate = new Date(selectedDate);
+      syncDateInputs();
+      renderDayView();
+      renderWeekView();
+    });
+
+    document.getElementById("prev-week").addEventListener("click", () => {
+      weekBaseDate.setDate(weekBaseDate.getDate() - 7);
+      renderWeekView();
+    });
+
+    document.getElementById("next-week").addEventListener("click", () => {
+      weekBaseDate.setDate(weekBaseDate.getDate() + 7);
+      renderWeekView();
+    });
+
+    const myWeekToggle = document.getElementById("my-week-only-toggle");
+    if (myWeekToggle) {
+      myWeekToggle.addEventListener("change", (e) => {
+        weekShowMyOnly = e.target.checked;
+        renderWeekView();
+      });
+    }
+
+    document.getElementById("reservation-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearError();
+
+      if (!currentUser) {
+        showError("@nsworld.net 계정으로 먼저 로그인해 주세요.");
+        return;
+      }
+
+      const dateVal = document.getElementById("date-input").value;
+      const roomVal = document.getElementById("room-select").value;
+      const timeVal = document.getElementById("time-select").value;
+      const repeatVal = document.getElementById("repeat-select").value;
+      const repeatUntilVal = document.getElementById("repeat-until").value;
+      const noteVal = document.getElementById("note-input").value.trim();
+      const nameVal = document.getElementById("reserver-name").value.trim() || currentUser.name;
+      const blockAllDayEl = document.getElementById("block-room-all-day");
+      const blockAllDay = blockAllDayEl ? blockAllDayEl.checked : false;
+      const isBlockModeActive = blockMode && isAdmin();
+
+      if (!dateVal || !roomVal || timeVal === "") {
+        showError("예약 날짜, 회의실, 시간을 모두 선택해 주세요.");
+        return;
+      }
+
+      const baseDate = parseDateFromInput(dateVal);
+      if (!baseDate) {
+        showError("잘못된 날짜 형식입니다.");
+        return;
+      }
+
+      if (!isWeekday(baseDate)) {
+        showError("예약은 월요일부터 금요일까지만 가능합니다.");
+        return;
+      }
+
+      const timeIndex = parseInt(timeVal, 10);
+      if (isRoomTimeBlocked(baseDate, roomVal, timeIndex)) {
+        showError("해당 회의실/시간대는 현재 예약이 불가한 시간입니다.");
+        return;
+      }
+
+      const baseDateKey = formatDateKey(baseDate);
+
+      let successCount = 0;
+      let conflictCount = 0;
+
+      if (repeatVal === "none") {
+        if (await addReservation(baseDateKey, roomVal, timeIndex, nameVal, noteVal, null, false)) {
+          successCount++;
+        } else {
+          conflictCount++;
+        }
+      } else if (repeatVal === "weekly") {
+        const untilDate = parseDateFromInput(repeatUntilVal);
+        if (!untilDate) {
+          showError("반복 예약의 종료일을 선택해 주세요.");
+          return;
+        }
+        if (untilDate < baseDate) {
+          showError("반복 종료일은 시작일 이후여야 합니다.");
+          return;
+        }
+
+        const baseDateKey = formatDateKey(baseDate);
+        const timeIndex = parseInt(timeVal, 10);
+
+        const tempDate = new Date(baseDate);
+
+        if (isBlockModeActive) {
+          const blockName = "예약 불가";
+
+          while (tempDate <= untilDate) {
+            const key = formatDateKey(tempDate);
+            if (isWeekday(tempDate)) {
+              if (blockAllDay) {
+                for (let idx = 0; idx < TIME_SLOTS.length; idx++) {
+                  if (isRoomTimeBlocked(tempDate, roomVal, idx)) continue;
+                  if (await addReservation(key, roomVal, idx, blockName, "", null, true)) {
+                    successCount++;
+                  } else {
+                    conflictCount++;
+                  }
+                }
+              } else {
+                if (!isRoomTimeBlocked(tempDate, roomVal, timeIndex)) {
+                  if (await addReservation(key, roomVal, timeIndex, blockName, "", null, true)) {
+                    successCount++;
+                  } else {
+                    conflictCount++;
+                  }
+                }
+              }
+            }
+            tempDate.setDate(tempDate.getDate() + 7);
+          }
+        } else {
+          const repeatGroupId = `${nameVal}:${roomVal}:${timeIndex}:${baseDateKey}:${Date.now()}`;
+
+          while (tempDate <= untilDate) {
+            const key = formatDateKey(tempDate);
+            if (await addReservation(key, roomVal, timeIndex, nameVal, noteVal, repeatGroupId, false)) {
+              successCount++;
+            } else {
+              conflictCount++;
+            }
+            tempDate.setDate(tempDate.getDate() + 7);
+          }
+        }
+      }
+
+      if (conflictCount > 0 && successCount === 0) {
+        showError("선택한 조건으로 이미 예약이 존재하여 등록할 수 없습니다.");
+      } else if (conflictCount > 0) {
+        showError(`일부 날짜는 이미 예약이 있어 제외되었으며, ${successCount}건의 예약이 등록되었습니다.`);
+      }
+
+      await fetchReservations(); // 최신 상태 다시 반영
+    });
+  }
+
+  // ---- 인증 상태 변화 감지 ----
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      const email = user.email || "";
+      const name = user.displayName || email.split("@")[0];
+
+      if (!email.endsWith("@nsworld.net")) {
+        alert("@nsworld.net 도메인 계정만 사용할 수 있습니다.");
+        await auth.signOut();
+        return;
+      }
+
+      // 로그인 상태
+      currentUser = { name, email };
+      updateAuthUI();
+
+      // 로그인된 상태에서만 Firestore에서 예약 불러오기
+      await fetchReservations();
+    } else {
+      // 로그아웃 상태
+      currentUser = null;
+      updateAuthUI();
+
+      // 로그아웃 시에는 예약 데이터 비우고 화면도 초기화
+      reservations = [];
+      renderDayView();
+      renderWeekView();
+    }
+  });
+
+
+  // ---- 시작 ----
+  document.addEventListener("DOMContentLoaded", async () => {
+    initTimeOptions();
+    initDateDefaults();
+    updateAuthUI();
+    attachEventHandlers();
+
+    // 초기 화면에서도 기본 표 구조가 보이도록 렌더링
+    renderDayView();
+    renderWeekView();
+  });
+</script>
+</body>
+</html>
