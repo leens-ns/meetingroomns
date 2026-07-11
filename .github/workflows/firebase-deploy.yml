@@ -45,7 +45,102 @@ jobs:
       - name: Install Firebase CLI
         run: |
           npm install -g firebase-tools@15.22.0
+          npm install firebase-admin@13.5.0
           firebase --version
+
+      - name: Seed teacher accounts
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const admin = require('firebase-admin');
+
+          const serviceAccount = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            projectId: 'namsung-meeting-room-7811f'
+          });
+
+          const adminEmails = ['leens@nsworld.net'];
+          const teacherEmails = [
+            'ansk@nsworld.net',
+            'anyj@nsworld.net',
+            'banyg@nsworld.net',
+            'bongumusam@nsworld.net',
+            'brendand@nsworld.net',
+            'choar@nsworld.net',
+            'conors@nsworld.net',
+            'dijonp@nsworld.net',
+            'erics@nsworld.net',
+            'gimjh@nsworld.net',
+            'handw@nsworld.net',
+            'hasj@nsworld.net',
+            'heosj@nsworld.net',
+            'hlengiwed@nsworld.net',
+            'jangeh@nsworld.net',
+            'jangsu@nsworld.net',
+            'jeongsh@nsworld.net',
+            'kangsm@nsworld.net',
+            'kangyj@nsworld.net',
+            'kimbj@nsworld.net',
+            'kimgr@nsworld.net',
+            'kimgs@nsworld.net',
+            'kimjs@nsworld.net',
+            'kimjw@nsworld.net',
+            'kimjy@nsworld.net',
+            'kimye@nsworld.net',
+            'kimyj@nsworld.net',
+            'laurenf@nsworld.net',
+            'leeds@nsworld.net',
+            'leegh@nsworld.net',
+            'leejy@nsworld.net',
+            'leekm@nsworld.net',
+            'leewg@nsworld.net',
+            'leeye@nsworld.net',
+            'lianab@nsworld.net',
+            'luket@nsworld.net',
+            'matthewf@nsworld.net',
+            'moonhs@nsworld.net',
+            'motlabailem@nsworld.net',
+            'mpumik@nsworld.net',
+            'myriamg@nsworld.net',
+            'nambr@nsworld.net',
+            'parkge@nsworld.net',
+            'parkje@nsworld.net',
+            'parkjs@nsworld.net',
+            'parkjy@nsworld.net',
+            'parkyh@nsworld.net',
+            'parkyj@nsworld.net',
+            'paulc@nsworld.net',
+            'ryana@nsworld.net',
+            'seodm@nsworld.net',
+            'seoym@nsworld.net',
+            'shimsy@nsworld.net',
+            'shinhn@nsworld.net',
+            'shinkm@nsworld.net',
+            'shinmj@nsworld.net',
+            'wangsy@nsworld.net',
+            'yashenm@nsworld.net',
+            'yoondy@nsworld.net'
+          ];
+
+          const uniqueSorted = (items) => [...new Set(items.map((item) => String(item).trim().toLowerCase()).filter(Boolean))].sort();
+          const allowedEmails = uniqueSorted([...adminEmails, ...teacherEmails]);
+
+          const ref = admin.firestore().doc('settings/app');
+          const snapshot = await ref.get();
+          const current = snapshot.exists ? snapshot.data() : {};
+          await ref.set({
+            ...current,
+            adminEmails: uniqueSorted(adminEmails),
+            allowedEmails
+          }, { merge: true });
+
+          console.log(`seeded ${allowedEmails.length} allowed accounts`);
+          console.log(`admins: ${adminEmails.join(', ')}`);
+          await admin.app().delete();
+          NODE
 
       - name: Check Firebase access
         env:

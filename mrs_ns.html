@@ -974,7 +974,8 @@
       }
 
       .choice-grid,
-      .time-slot-row {
+      .time-slot-row,
+      .account-item {
         grid-template-columns: minmax(0, 1fr);
       }
 
@@ -1221,6 +1222,10 @@
       margin: 0 0 14px;
     }
 
+    .admin-panel.collapsed {
+      display: none;
+    }
+
     .admin-panel .card {
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
       border-radius: var(--radius-card);
@@ -1416,7 +1421,25 @@
     }
 
     .account-item {
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(96px, 120px) auto;
+    }
+
+    .account-role-select {
+      min-height: 30px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-control);
+      background: #ffffff;
+      color: #374151;
+      font-size: 0.74rem;
+      padding: 4px 8px;
+      justify-self: end;
+    }
+
+    .account-bulk-input {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 1.35;
+      font-size: 0.76rem;
     }
 
     .time-slot-row {
@@ -1673,14 +1696,13 @@
 
     <!-- 관리자용 일괄 취소 버튼 (관리자에게만 표시) -->
     <section class="admin-actions hidden" id="admin-actions">
+      <button type="button" class="btn btn-primary" id="toggle-admin-tools-btn">관리자 도구 열기</button>
       <button type="button" class="btn btn-outline" id="toggle-block-mode">예약 불가 일자 설정</button>
-      <button type="button" class="btn btn-outline" id="manage-rooms-btn">회의실 관리</button>
-      <button type="button" class="btn btn-outline" id="manage-access-btn">접근 계정 관리</button>
       <button type="button" class="btn btn-outline" id="cancel-day-btn">일간 예약 일괄 취소</button>
       <button type="button" class="btn btn-outline" id="cancel-week-btn">주간 예약 일괄 취소</button>
     </section>
 
-    <section class="admin-panel hidden" id="admin-panel">
+    <section class="admin-panel hidden collapsed" id="admin-panel">
       <section class="card">
         <div class="card-header">
           <h2 id="admin-tools-title">관리자 도구</h2>
@@ -1752,6 +1774,10 @@
               <button type="button" class="btn btn-outline" id="download-account-sample-btn">양식 받기</button>
             </div>
             <div class="helper-text" style="margin-top:8px;">CSV 열: email, role(admin 또는 teacher), name. UTF-8 BOM으로 읽어 한글 이름이 깨지지 않도록 처리합니다.</div>
+            <textarea id="account-bulk-input" class="field-input account-bulk-input" placeholder="이메일을 한 줄에 하나씩 붙여넣거나, email,role 형식으로 붙여넣기"></textarea>
+            <div class="compact-row" style="margin-top:8px;">
+              <button type="button" class="btn btn-outline" id="import-account-text-btn">붙여넣기 일괄 추가</button>
+            </div>
             <div class="account-list" id="account-list">
               <div class="account-item">등록된 계정이 없습니다.</div>
             </div>
@@ -2059,7 +2085,68 @@
     "옥스퍼드 교실": "Oxford"
   };
   const DEFAULT_ADMIN_EMAILS = ["leens@nsworld.net"];
-  const DEFAULT_ALLOWED_EMAILS = ["leens@nsworld.net"];
+  const DEFAULT_TEACHER_EMAILS = [
+    "ansk@nsworld.net",
+    "anyj@nsworld.net",
+    "banyg@nsworld.net",
+    "bongumusam@nsworld.net",
+    "brendand@nsworld.net",
+    "choar@nsworld.net",
+    "conors@nsworld.net",
+    "dijonp@nsworld.net",
+    "erics@nsworld.net",
+    "gimjh@nsworld.net",
+    "handw@nsworld.net",
+    "hasj@nsworld.net",
+    "heosj@nsworld.net",
+    "hlengiwed@nsworld.net",
+    "jangeh@nsworld.net",
+    "jangsu@nsworld.net",
+    "jeongsh@nsworld.net",
+    "kangsm@nsworld.net",
+    "kangyj@nsworld.net",
+    "kimbj@nsworld.net",
+    "kimgr@nsworld.net",
+    "kimgs@nsworld.net",
+    "kimjs@nsworld.net",
+    "kimjw@nsworld.net",
+    "kimjy@nsworld.net",
+    "kimye@nsworld.net",
+    "kimyj@nsworld.net",
+    "laurenf@nsworld.net",
+    "leeds@nsworld.net",
+    "leegh@nsworld.net",
+    "leejy@nsworld.net",
+    "leekm@nsworld.net",
+    "leewg@nsworld.net",
+    "leeye@nsworld.net",
+    "lianab@nsworld.net",
+    "luket@nsworld.net",
+    "matthewf@nsworld.net",
+    "moonhs@nsworld.net",
+    "motlabailem@nsworld.net",
+    "mpumik@nsworld.net",
+    "myriamg@nsworld.net",
+    "nambr@nsworld.net",
+    "parkge@nsworld.net",
+    "parkje@nsworld.net",
+    "parkjs@nsworld.net",
+    "parkjy@nsworld.net",
+    "parkyh@nsworld.net",
+    "parkyj@nsworld.net",
+    "paulc@nsworld.net",
+    "ryana@nsworld.net",
+    "seodm@nsworld.net",
+    "seoym@nsworld.net",
+    "shimsy@nsworld.net",
+    "shinhn@nsworld.net",
+    "shinkm@nsworld.net",
+    "shinmj@nsworld.net",
+    "wangsy@nsworld.net",
+    "yashenm@nsworld.net",
+    "yoondy@nsworld.net"
+  ];
+  const DEFAULT_ALLOWED_EMAILS = [...DEFAULT_ADMIN_EMAILS, ...DEFAULT_TEACHER_EMAILS];
   let ROOMS = [...DEFAULT_ROOMS];
   let ROOM_NOTES = [...DEFAULT_ROOM_NOTES];
   let adminEmails = [...DEFAULT_ADMIN_EMAILS];
@@ -2067,6 +2154,7 @@
   let blockTemplates = [];
   let auditLogs = [];
   let selectedTemplateId = null;
+  let adminToolsExpanded = false;
 
   const ROOM_CLASS_MAP = {
     "가온누리": "room-gaonnuri",
@@ -2584,8 +2672,6 @@
     if (duplicateHelp) duplicateHelp.textContent = t("duplicateHelp");
 
     setText("#toggle-block-mode", "adminBlockDate");
-    setText("#manage-rooms-btn", "manageRooms");
-    setText("#manage-access-btn", "manageAccess");
     setText("#cancel-day-btn", "cancelDay");
     setText("#cancel-week-btn", "cancelWeek");
     setText(".repeat-tool .tool-title", "blockBulk");
@@ -2679,6 +2765,10 @@
     ));
   }
 
+  function cleanEmailList(values) {
+    return cleanList(values.map((value) => String(value || "").trim().toLowerCase()));
+  }
+
   function normalizeRoomNotes(rooms, notes = []) {
     return rooms.map((room, index) => {
       const stored = Array.isArray(notes) ? String(notes[index] || "").trim() : "";
@@ -2719,8 +2809,8 @@
           const data = doc.data() || {};
           ROOMS = cleanList(Array.isArray(data.rooms) ? data.rooms : DEFAULT_ROOMS);
           ROOM_NOTES = normalizeRoomNotes(ROOMS, data.roomNotes);
-          adminEmails = cleanList(Array.isArray(data.adminEmails) ? data.adminEmails : DEFAULT_ADMIN_EMAILS);
-          allowedEmails = cleanList(Array.isArray(data.allowedEmails) ? data.allowedEmails : DEFAULT_ALLOWED_EMAILS);
+          adminEmails = cleanEmailList(Array.isArray(data.adminEmails) ? data.adminEmails : DEFAULT_ADMIN_EMAILS);
+          allowedEmails = cleanEmailList(Array.isArray(data.allowedEmails) ? data.allowedEmails : DEFAULT_ALLOWED_EMAILS);
           blockTemplates = Array.isArray(data.blockTemplates) ? data.blockTemplates : [];
           if (Array.isArray(data.timeSlots) && Array.isArray(data.timeLabels) && data.timeSlots.length === data.timeLabels.length && data.timeSlots.length > 0) {
             TIME_SLOTS = data.timeSlots.map((value) => String(value || "").trim()).filter(Boolean);
@@ -2740,7 +2830,7 @@
       TIME_LABELS = [...DEFAULT_TIME_LABELS];
     }
     TIME_LABELS = TIME_LABELS.map((label) => label === "일과후" ? "방과후" : label);
-    allowedEmails = cleanList([...allowedEmails, ...adminEmails]);
+    allowedEmails = cleanEmailList([...allowedEmails, ...adminEmails]);
     renderRoomControls();
     renderTimeControls();
     renderAccountList();
@@ -2768,8 +2858,8 @@
     };
     payload.rooms = cleanList(payload.rooms);
     payload.roomNotes = normalizeRoomNotes(payload.rooms, payload.roomNotes);
-    payload.adminEmails = cleanList(payload.adminEmails);
-    payload.allowedEmails = cleanList([...payload.allowedEmails, ...payload.adminEmails]);
+    payload.adminEmails = cleanEmailList(payload.adminEmails);
+    payload.allowedEmails = cleanEmailList([...payload.allowedEmails, ...payload.adminEmails]);
     payload.timeSlots = (payload.timeSlots || []).map((value) => String(value || "").trim()).filter(Boolean);
     payload.timeLabels = (payload.timeLabels || [])
       .map((value) => String(value || "").trim())
@@ -3058,7 +3148,7 @@
     if (!list) return;
     list.textContent = "";
 
-    const emails = cleanList([...allowedEmails, ...adminEmails]);
+    const emails = cleanEmailList([...allowedEmails, ...adminEmails]).sort();
     if (emails.length === 0) {
       const empty = document.createElement("div");
       empty.className = "account-item";
@@ -3079,6 +3169,21 @@
       meta.appendChild(title);
       meta.appendChild(role);
 
+      const roleSelect = document.createElement("select");
+      roleSelect.className = "account-role-select";
+      roleSelect.setAttribute("aria-label", `${email} 역할`);
+      [
+        ["teacher", "교사"],
+        ["admin", "관리자"]
+      ].forEach(([value, label]) => {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        roleSelect.appendChild(opt);
+      });
+      roleSelect.value = adminEmails.includes(email) ? "admin" : "teacher";
+      roleSelect.addEventListener("change", () => updateAccountRole(email, roleSelect.value));
+
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn btn-outline";
@@ -3086,6 +3191,7 @@
       btn.addEventListener("click", () => removeAccount(email));
 
       item.appendChild(meta);
+      item.appendChild(roleSelect);
       item.appendChild(btn);
       list.appendChild(item);
     });
@@ -3285,11 +3391,26 @@
 
     return lines.slice(startIndex).map((line) => {
       const cells = parseCsvLine(line);
-      const email = (emailIndex >= 0 ? cells[emailIndex] : cells[0] || "").trim();
+      const email = (emailIndex >= 0 ? cells[emailIndex] : cells[0] || "").trim().toLowerCase();
       const role = (roleIndex >= 0 ? cells[roleIndex] : cells[1] || "teacher").trim().toLowerCase();
       const name = (nameIndex >= 0 ? cells[nameIndex] : cells[2] || "").trim();
       return { email, role, name };
     }).filter((row) => row.email.includes("@"));
+  }
+
+  function parseAccountText(text) {
+    const cleanText = text.replace(/^\uFEFF/, "").trim();
+    if (!cleanText) return [];
+    const lines = cleanText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const looksLikeCsv = lines[0] && lines[0].includes(",");
+    if (looksLikeCsv || /^email(\s*,|\s*$)/i.test(lines[0])) {
+      return parseAccountCsv(cleanText);
+    }
+    return lines.map((line) => ({
+      email: line.split(/\s+/)[0].trim().toLowerCase(),
+      role: "teacher",
+      name: ""
+    })).filter((row) => row.email.includes("@"));
   }
 
   function readCsvFile(file) {
@@ -3462,23 +3583,14 @@
     }
   }
 
-  async function importAccountsFromCsv(deleteMode = false) {
-    if (!isAdmin()) return;
-    const input = document.getElementById("account-csv-input");
-    const file = input && input.files && input.files[0];
-    if (!file) {
-      showError("CSV 파일을 먼저 선택해 주세요.");
-      return;
-    }
-
-    const rows = parseAccountCsv(await readCsvFile(file));
+  async function saveAccountRows(rows, deleteMode = false, sourceLabel = "계정") {
     if (rows.length === 0) {
-      showError("CSV에서 계정을 찾지 못했습니다.");
+      showError(`${sourceLabel}에서 계정을 찾지 못했습니다.`);
       return;
     }
 
-    const emails = cleanList(rows.map((row) => row.email));
-    const adminRows = cleanList(rows.filter((row) => row.role === "admin").map((row) => row.email));
+    const emails = cleanEmailList(rows.map((row) => row.email));
+    const adminRows = cleanEmailList(rows.filter((row) => row.role === "admin").map((row) => row.email));
 
     if (deleteMode) {
       const nextAllowed = allowedEmails.filter((email) => !emails.includes(email));
@@ -3491,35 +3603,75 @@
       await writeAuditLog("계정 CSV 삭제", { summary: `${emails.length}개 계정 삭제` });
     } else {
       await saveAppSettings({
-        allowedEmails: cleanList([...allowedEmails, ...emails]),
-        adminEmails: cleanList([...adminEmails, ...adminRows])
+        allowedEmails: cleanEmailList([...allowedEmails, ...emails]),
+        adminEmails: cleanEmailList([...adminEmails, ...adminRows])
       });
-      await writeAuditLog("계정 CSV 추가", { summary: `${emails.length}개 계정 추가` });
+      await writeAuditLog("계정 일괄 추가", { summary: `${emails.length}개 계정 추가` });
     }
+  }
+
+  async function importAccountsFromCsv(deleteMode = false) {
+    if (!isAdmin()) return;
+    const input = document.getElementById("account-csv-input");
+    const file = input && input.files && input.files[0];
+    if (!file) {
+      showError("CSV 파일을 먼저 선택해 주세요.");
+      return;
+    }
+
+    await saveAccountRows(parseAccountCsv(await readCsvFile(file)), deleteMode, "CSV");
+  }
+
+  async function importAccountsFromText() {
+    if (!isAdmin()) return;
+    const input = document.getElementById("account-bulk-input");
+    const rows = parseAccountText(input ? input.value : "");
+    await saveAccountRows(rows, false, "붙여넣기 입력");
+    if (input && rows.length > 0) input.value = "";
+  }
+
+  async function updateAccountRole(email, role) {
+    if (!isAdmin()) return;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const nextAllowed = cleanEmailList([...allowedEmails, normalizedEmail]);
+    let nextAdmins = cleanEmailList(adminEmails);
+    if (role === "admin") {
+      nextAdmins = cleanEmailList([...nextAdmins, normalizedEmail]);
+    } else {
+      nextAdmins = nextAdmins.filter((item) => item !== normalizedEmail);
+    }
+    if (nextAdmins.length === 0) {
+      showError("관리자 계정은 최소 한 개가 남아 있어야 합니다.");
+      renderAccountList();
+      return;
+    }
+    await saveAppSettings({ allowedEmails: nextAllowed, adminEmails: nextAdmins });
+    await writeAuditLog("계정 역할 변경", { summary: `${normalizedEmail} ${role === "admin" ? "관리자" : "교사"}` });
   }
 
   async function removeAccount(email) {
     if (!isAdmin()) return;
-    if (email === currentUser.email) {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (normalizedEmail === currentUser.email) {
       showError("현재 로그인한 관리자 계정은 여기서 삭제할 수 없습니다.");
       return;
     }
 
-    const nextAllowed = allowedEmails.filter((item) => item !== email);
-    const nextAdmins = adminEmails.filter((item) => item !== email);
+    const nextAllowed = allowedEmails.filter((item) => item !== normalizedEmail);
+    const nextAdmins = adminEmails.filter((item) => item !== normalizedEmail);
     if (nextAdmins.length === 0) {
       showError("관리자 계정은 최소 한 개가 남아 있어야 합니다.");
       return;
     }
 
-    const ok = confirm(`${email} 계정을 접근 허용 목록에서 삭제하시겠습니까?`);
+    const ok = confirm(`${normalizedEmail} 계정을 접근 허용 목록에서 삭제하시겠습니까?`);
     if (!ok) return;
 
     await saveAppSettings({
       allowedEmails: nextAllowed,
       adminEmails: nextAdmins
     });
-    await writeAuditLog("계정 개별 삭제", { summary: email });
+    await writeAuditLog("계정 개별 삭제", { summary: normalizedEmail });
   }
 
   async function saveRoomsFromEditor() {
@@ -4423,6 +4575,7 @@ function syncDateInputs() {
       loginBtn.classList.add("hidden");
       logoutBtn.classList.remove("hidden");
     } else {
+      adminToolsExpanded = false;
       status.textContent = t("authRequired");
       name.textContent = t("staffLogin");
       reserverName.value = "";
@@ -4442,16 +4595,24 @@ function syncDateInputs() {
     if (adminPanel) {
       if (isAdmin()) {
         adminPanel.classList.remove("hidden");
+        adminPanel.classList.toggle("collapsed", !adminToolsExpanded);
         renderAuditLogs();
         if (adminUpdateModal && !adminUpdatePopupShown && showUpdateNotice("admin")) {
           adminUpdatePopupShown = true;
         }
       } else {
         adminPanel.classList.add("hidden");
+        adminPanel.classList.add("collapsed");
         if (adminUpdateModal) {
           adminUpdateModal.classList.add("hidden");
         }
       }
+    }
+
+    const adminToolsBtn = document.getElementById("toggle-admin-tools-btn");
+    if (adminToolsBtn) {
+      adminToolsBtn.textContent = adminToolsExpanded ? "관리자 도구 접기" : "관리자 도구 열기";
+      adminToolsBtn.setAttribute("aria-expanded", String(adminToolsExpanded));
     }
 
     // 관리자 모드 UI 동기화
@@ -4503,7 +4664,7 @@ function syncDateInputs() {
     auth.signInWithPopup(provider)
       .then(async (result) => {
         const user = result.user;
-        const email = user.email || "";
+        const email = String(user.email || "").toLowerCase();
         const name = user.displayName || email.split("@")[0];
 
         await ensureAppSettingsLoaded(true);
@@ -4526,6 +4687,7 @@ function syncDateInputs() {
     auth.signOut().then(() => {
       currentUser = null;
       blockMode = false;
+      adminToolsExpanded = false;
       updateAuthUI();
     });
   }
@@ -4618,6 +4780,21 @@ function syncDateInputs() {
     document.getElementById("login-btn").addEventListener("click", googleLogin);
     document.getElementById("logout-btn").addEventListener("click", googleLogout);
 
+    const adminToolsBtn = document.getElementById("toggle-admin-tools-btn");
+    if (adminToolsBtn) {
+      adminToolsBtn.addEventListener("click", () => {
+        if (!isAdmin()) {
+          showError("관리자 도구는 관리자만 사용할 수 있습니다.");
+          return;
+        }
+        adminToolsExpanded = !adminToolsExpanded;
+        updateAuthUI();
+        if (adminToolsExpanded) {
+          document.getElementById("admin-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
+
     const dayBulkBtn = document.getElementById("cancel-day-btn");
     if (dayBulkBtn) {
       dayBulkBtn.addEventListener("click", handleBulkDayCancel);
@@ -4697,6 +4874,11 @@ function syncDateInputs() {
     const importCsvBtn = document.getElementById("import-account-csv-btn");
     if (importCsvBtn) {
       importCsvBtn.addEventListener("click", () => importAccountsFromCsv(false));
+    }
+
+    const importTextBtn = document.getElementById("import-account-text-btn");
+    if (importTextBtn) {
+      importTextBtn.addEventListener("click", importAccountsFromText);
     }
 
     const deleteCsvBtn = document.getElementById("delete-account-csv-btn");
@@ -5070,7 +5252,7 @@ function syncDateInputs() {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       await ensureAppSettingsLoaded(true);
-      const email = user.email || "";
+      const email = String(user.email || "").toLowerCase();
       const name = user.displayName || email.split("@")[0];
 
       if (!isAllowedEmail(email)) {
@@ -5092,6 +5274,7 @@ function syncDateInputs() {
       // 로그아웃 상태
       currentUser = null;
       blockMode = false; // 예약 불가 모드도 해제
+      adminToolsExpanded = false;
       updateAuthUI();
 
       // 로그아웃 시에는 예약 데이터 비우고 화면도 초기화
