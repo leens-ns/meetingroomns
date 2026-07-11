@@ -6,6 +6,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,10 +40,27 @@ jobs:
       - name: Write service account
         run: |
           printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_B64 }}' | base64 -d > "$RUNNER_TEMP/firebase-service-account.json"
-          node -e "const fs=require('fs'); const key=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/firebase-service-account.json', 'utf8')); if (key.type !== 'service_account') throw new Error('Invalid service account JSON'); console.log(key.client_email);"
+          node -e "const fs=require('fs'); const key=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/firebase-service-account.json', 'utf8')); if (key.type !== 'service_account') throw new Error('Invalid service account JSON'); console.log('service account:', key.client_email); console.log('project:', key.project_id);"
 
-      - name: Deploy
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools@15.22.0
+          firebase --version
+
+      - name: Check Firebase access
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: |
-          npx --yes firebase-tools@15.22.0 deploy --only hosting,firestore:rules --project namsung-meeting-room-7811f --debug
+          firebase projects:list --debug
+
+      - name: Deploy Firestore rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          firebase deploy --only firestore:rules --project namsung-meeting-room-7811f --debug
+
+      - name: Deploy Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          firebase deploy --only hosting --project namsung-meeting-room-7811f --debug
