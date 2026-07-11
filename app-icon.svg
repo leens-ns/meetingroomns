@@ -1,17 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">남성초 회의실 예약</title>
-  <desc id="desc">회의 테이블과 의자를 나타낸 남성초등학교 회의실 예약 시스템 앱 아이콘</desc>
+  <desc id="desc">회의실 문 표지와 예약 체크 달력을 함께 나타낸 앱 아이콘</desc>
   <rect width="512" height="512" fill="#2563eb"/>
-  <circle cx="390" cy="132" r="58" fill="#0f766e"/>
-  <path fill="#ffffff" d="m365 132 16 16 34-40c6-7 16-7 22-2 7 6 7 16 2 22l-45 53c-3 4-8 6-13 6s-9-2-12-5l-27-27c-6-6-6-16 0-22 6-7 16-7 23-1Z"/>
-  <path fill="#bfdbfe" d="M139 179c0-24 19-43 43-43h148c24 0 43 19 43 43v10H139v-10Z"/>
-  <rect x="112" y="202" width="288" height="132" rx="52" fill="#dbeafe"/>
-  <rect x="154" y="234" width="204" height="68" rx="34" fill="#ffffff"/>
-  <path fill="#1e40af" d="M198 112h116c13 0 24 11 24 24v30H174v-30c0-13 11-24 24-24Z"/>
-  <path fill="#bfdbfe" d="M96 220c0-18 14-32 32-32h20v80h-20c-18 0-32-14-32-32v-16Zm268-32h20c18 0 32 14 32 32v16c0 18-14 32-32 32h-20v-80ZM154 358c0-18 14-32 32-32h24v70h-24c-18 0-32-14-32-32v-6Zm148-32h24c18 0 32 14 32 32v6c0 18-14 32-32 32h-24v-70Z"/>
-  <path fill="#60a5fa" d="M206 334h100v34H206z"/>
-  <path fill="#1e40af" d="M166 286h180c12 0 22 10 22 22s-10 22-22 22H166c-12 0-22-10-22-22s10-22 22-22Z"/>
-  <circle cx="208" cy="260" r="16" fill="#2563eb"/>
-  <circle cx="256" cy="260" r="16" fill="#2563eb"/>
-  <circle cx="304" cy="260" r="16" fill="#2563eb"/>
+  <rect x="108" y="104" width="230" height="312" rx="34" fill="#dbeafe"/>
+  <rect x="132" y="128" width="182" height="288" rx="24" fill="#ffffff"/>
+  <rect x="155" y="166" width="136" height="64" rx="14" fill="#1e40af"/>
+  <text x="223" y="208" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="800" fill="#ffffff">ROOM</text>
+  <rect x="172" y="263" width="102" height="44" rx="22" fill="#bfdbfe"/>
+  <circle cx="298" cy="284" r="13" fill="#1e40af"/>
+  <path fill="#60a5fa" d="M108 399h230v38c0 15-12 27-27 27H135c-15 0-27-12-27-27v-38Z"/>
+  <rect x="300" y="242" width="126" height="142" rx="24" fill="#ffffff"/>
+  <path fill="#0f766e" d="M300 266c0-13 11-24 24-24h78c13 0 24 11 24 24v24H300v-24Z"/>
+  <circle cx="332" cy="241" r="13" fill="#bfdbfe"/>
+  <circle cx="394" cy="241" r="13" fill="#bfdbfe"/>
+  <path fill="#0f766e" d="m337 332 19 19 39-49c6-7 17-8 24-2s8 16 2 24l-51 63c-3 4-8 7-14 7-5 0-10-2-14-6l-30-30c-7-7-7-18 0-25s18-7 25-1Z"/>
+  <path fill="#1e40af" opacity=".18" d="M132 128h182v28H132z"/>
 </svg>
