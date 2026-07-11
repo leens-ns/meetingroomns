@@ -129,11 +129,7 @@ jobs:
             const uniqueSorted = (items) => [...new Set(items.map((item) => String(item).trim().toLowerCase()).filter(Boolean))].sort();
             const allowedEmails = uniqueSorted([...adminEmails, ...teacherEmails]);
 
-            const ref = admin.firestore().doc('settings/app');
-            const snapshot = await ref.get();
-            const current = snapshot.exists ? snapshot.data() : {};
-            await ref.set({
-              ...current,
+            await admin.firestore().doc('settings/app').set({
               adminEmails: uniqueSorted(adminEmails),
               allowedEmails
             }, { merge: true });
