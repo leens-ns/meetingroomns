@@ -68,7 +68,7 @@ NODE
 
 echo
 echo "3. GitHub에 변경사항 업로드"
-git add mrs_ns.html firestore.rules firebase.json .firebaserc manifest.webmanifest sw.js app-icon.svg DEPLOY.md .github/workflows/firebase-deploy.yml
+git add mrs_ns.html firestore.rules firebase.json .firebaserc manifest.webmanifest sw.js app-icon.svg app-icon-192.png app-icon-512.png apple-touch-icon.png DEPLOY.md .github/workflows/firebase-deploy.yml
 git commit -m "Update meeting room reservation app" || true
 git pull --rebase origin main
 git push origin HEAD

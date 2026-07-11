@@ -1,8 +1,11 @@
-const CACHE_NAME = "namsung-meeting-room-v2";
+const CACHE_NAME = "namsung-meeting-room-v2-icons";
 const APP_SHELL = [
   "/mrs_ns.html",
   "/manifest.webmanifest",
-  "/app-icon.svg"
+  "/app-icon.svg",
+  "/app-icon-192.png",
+  "/app-icon-512.png",
+  "/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (event) => {

@@ -38,7 +38,7 @@
         ]
       },
       {
-        "source": "**/*.@(webmanifest|svg)",
+        "source": "**/*.@(webmanifest|svg|png)",
         "headers": [
           {
             "key": "Cache-Control",
