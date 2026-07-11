@@ -1,18 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">남성초 회의실 예약</title>
-  <desc id="desc">회의실 문 표지와 예약 체크 달력을 함께 나타낸 앱 아이콘</desc>
+  <desc id="desc">회의실 문과 ROOM 표지를 단순하게 나타낸 앱 아이콘</desc>
   <rect width="512" height="512" fill="#2563eb"/>
-  <rect x="108" y="104" width="230" height="312" rx="34" fill="#dbeafe"/>
-  <rect x="132" y="128" width="182" height="288" rx="24" fill="#ffffff"/>
-  <rect x="155" y="166" width="136" height="64" rx="14" fill="#1e40af"/>
-  <text x="223" y="208" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="800" fill="#ffffff">ROOM</text>
-  <rect x="172" y="263" width="102" height="44" rx="22" fill="#bfdbfe"/>
-  <circle cx="298" cy="284" r="13" fill="#1e40af"/>
-  <path fill="#60a5fa" d="M108 399h230v38c0 15-12 27-27 27H135c-15 0-27-12-27-27v-38Z"/>
-  <rect x="300" y="242" width="126" height="142" rx="24" fill="#ffffff"/>
-  <path fill="#0f766e" d="M300 266c0-13 11-24 24-24h78c13 0 24 11 24 24v24H300v-24Z"/>
-  <circle cx="332" cy="241" r="13" fill="#bfdbfe"/>
-  <circle cx="394" cy="241" r="13" fill="#bfdbfe"/>
-  <path fill="#0f766e" d="m337 332 19 19 39-49c6-7 17-8 24-2s8 16 2 24l-51 63c-3 4-8 7-14 7-5 0-10-2-14-6l-30-30c-7-7-7-18 0-25s18-7 25-1Z"/>
-  <path fill="#1e40af" opacity=".18" d="M132 128h182v28H132z"/>
+  <rect x="116" y="86" width="280" height="368" rx="42" fill="#dbeafe"/>
+  <rect x="146" y="118" width="220" height="336" rx="28" fill="#ffffff"/>
+  <rect x="174" y="164" width="164" height="76" rx="18" fill="#1e40af"/>
+  <text x="256" y="214" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="900" fill="#ffffff">ROOM</text>
+  <rect x="184" y="288" width="104" height="48" rx="24" fill="#bfdbfe"/>
+  <circle cx="318" cy="312" r="16" fill="#1e40af"/>
+  <path fill="#60a5fa" d="M116 408h280v40c0 18-15 32-33 32H149c-18 0-33-14-33-32v-40Z"/>
+  <path fill="#1e40af" opacity=".14" d="M146 118h220v34H146z"/>
 </svg>

@@ -167,16 +167,20 @@
     }
 
     .install-app-btn {
-      min-height: 40px;
-      border-radius: var(--radius-control);
+      width: auto;
+      min-width: 64px;
+      min-height: 34px;
+      border-radius: 999px;
       border: 1px solid #059669;
       background: #10b981;
       color: #ffffff;
-      padding: 7px 12px;
-      font-size: 0.8rem;
+      padding: 5px 10px;
+      font-size: 0.72rem;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 6px 14px rgba(5, 150, 105, 0.24);
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.18);
       transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
 
@@ -188,7 +192,7 @@
 
     .install-app-btn:disabled {
       cursor: default;
-      opacity: 0.72;
+      opacity: 0.82;
       transform: none;
       box-shadow: none;
     }
