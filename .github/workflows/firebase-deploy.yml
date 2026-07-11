@@ -1,0 +1,46 @@
+name: Firebase Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate files
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('mrs_ns.html', 'utf8');
+          const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
+          scripts.forEach((script, index) => {
+            try { new Function(script); }
+            catch (error) {
+              console.error(`mrs_ns.html script ${index + 1}: ${error.message}`);
+              process.exit(1);
+            }
+          });
+          for (const file of ['firebase.json', '.firebaserc', 'manifest.webmanifest']) {
+            JSON.parse(fs.readFileSync(file, 'utf8'));
+          }
+          new Function(fs.readFileSync('sw.js', 'utf8'));
+          console.log('ready');
+          NODE
+
+      - name: Write service account
+        run: |
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Deploy
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          npx --yes firebase-tools@15.22.0 deploy --only hosting,firestore:rules --project namsung-meeting-room-7811f

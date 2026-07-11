@@ -1,0 +1,107 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email is string;
+    }
+
+    function appSettings() {
+      return get(/databases/$(database)/documents/settings/app).data;
+    }
+
+    function settingsExists() {
+      return exists(/databases/$(database)/documents/settings/app);
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && (request.auth.token.email == "leens@nsworld.net"
+          || (settingsExists() && request.auth.token.email in appSettings().adminEmails));
+    }
+
+    function isAllowed() {
+      return signedIn()
+        && (isAdmin()
+          || (settingsExists() && request.auth.token.email in appSettings().allowedEmails));
+    }
+
+    function validSettings() {
+      return request.resource.data.keys().hasOnly([
+          'rooms',
+          'roomNotes',
+          'adminEmails',
+          'allowedEmails',
+          'blockTemplates',
+          'timeSlots',
+          'timeLabels'
+        ])
+        && request.resource.data.rooms is list
+        && request.resource.data.roomNotes is list
+        && request.resource.data.adminEmails is list
+        && request.resource.data.allowedEmails is list
+        && request.resource.data.timeSlots is list
+        && request.resource.data.timeLabels is list
+        && request.resource.data.adminEmails.size() > 0
+        && request.resource.data.roomNotes.size() == request.resource.data.rooms.size()
+        && request.resource.data.timeSlots.size() > 0
+        && request.resource.data.timeSlots.size() == request.resource.data.timeLabels.size()
+        && request.auth.token.email in request.resource.data.adminEmails;
+    }
+
+    function validReservationCreate() {
+      return request.resource.data.keys().hasOnly([
+          'date',
+          'room',
+          'timeSlotIndex',
+          'name',
+          'note',
+          'ownerEmail',
+          'expiresAt',
+          'repeatGroupId',
+          'blocked'
+        ])
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && request.resource.data.date is string
+        && request.resource.data.room is string
+        && request.resource.data.timeSlotIndex is int
+        && request.resource.data.name is string
+        && request.resource.data.note is string
+        && request.resource.data.expiresAt is timestamp
+        && (!('blocked' in request.resource.data) || isAdmin());
+    }
+
+    match /settings/app {
+      allow read: if isAllowed();
+      allow write: if isAdmin() && validSettings();
+    }
+
+    match /reservations/{reservationId} {
+      allow read: if isAllowed();
+
+      allow create: if isAllowed() && validReservationCreate();
+
+      allow update: if false;
+
+      allow delete: if isAdmin()
+        || (isAllowed()
+          && (
+            (('ownerEmail' in resource.data) && resource.data.ownerEmail == request.auth.token.email)
+            || (!('ownerEmail' in resource.data)
+              && resource.data.name is string
+              && request.auth.token.name is string
+              && resource.data.name == request.auth.token.name)
+          )
+          && !('blocked' in resource.data));
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAllowed()
+        && request.resource.data.actorEmail == request.auth.token.email
+        && request.resource.data.action is string;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+  }
+}

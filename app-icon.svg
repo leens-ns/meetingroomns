@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">남성초 회의실 예약</title>
+  <desc id="desc">남성초등학교 회의실 예약 시스템 앱 아이콘</desc>
+  <rect width="512" height="512" rx="112" fill="#2563eb"/>
+  <path fill="#dbeafe" d="M116 148c0-22.1 17.9-40 40-40h200c22.1 0 40 17.9 40 40v216c0 22.1-17.9 40-40 40H156c-22.1 0-40-17.9-40-40V148Z"/>
+  <path fill="#1e40af" d="M156 108h200c22.1 0 40 17.9 40 40v42H116v-42c0-22.1 17.9-40 40-40Z"/>
+  <path fill="#ffffff" d="M172 238h56v52h-56v-52Zm84 0h84v52h-84v-52Zm-84 78h56v52h-56v-52Zm84 0h84v52h-84v-52Z"/>
+  <path fill="#bfdbfe" d="M176 76c11 0 20 9 20 20v40c0 11-9 20-20 20s-20-9-20-20V96c0-11 9-20 20-20Zm160 0c11 0 20 9 20 20v40c0 11-9 20-20 20s-20-9-20-20V96c0-11 9-20 20-20Z"/>
+  <path fill="#ffffff" d="M227 165h58c9.4 0 17 7.6 17 17s-7.6 17-17 17h-58c-9.4 0-17-7.6-17-17s7.6-17 17-17Z" opacity=".9"/>
+</svg>
