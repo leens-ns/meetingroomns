@@ -37,10 +37,11 @@ jobs:
 
       - name: Write service account
         run: |
-          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-service-account.json"
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_B64 }}' | base64 -d > "$RUNNER_TEMP/firebase-service-account.json"
+          node -e "const fs=require('fs'); const key=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/firebase-service-account.json', 'utf8')); if (key.type !== 'service_account') throw new Error('Invalid service account JSON'); console.log(key.client_email);"
 
       - name: Deploy
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: |
-          npx --yes firebase-tools@15.22.0 deploy --only hosting,firestore:rules --project namsung-meeting-room-7811f
+          npx --yes firebase-tools@15.22.0 deploy --only hosting,firestore:rules --project namsung-meeting-room-7811f --debug
