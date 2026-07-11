@@ -1,11 +1,11 @@
-const CACHE_NAME = "namsung-meeting-room-v2-pwa-install";
+const CACHE_NAME = "namsung-meeting-room-v2-pwa-relative";
 const APP_SHELL = [
-  "/mrs_ns.html",
-  "/manifest.webmanifest",
-  "/app-icon.svg",
-  "/app-icon-192.png",
-  "/app-icon-512.png",
-  "/apple-touch-icon.png"
+  "./mrs_ns.html",
+  "./manifest.webmanifest",
+  "./app-icon.svg",
+  "./app-icon-192.png",
+  "./app-icon-512.png",
+  "./apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -37,10 +37,10 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("/mrs_ns.html", copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put("./mrs_ns.html", copy));
           return response;
         })
-        .catch(() => caches.match("/mrs_ns.html"))
+        .catch(() => caches.match("./mrs_ns.html"))
     );
     return;
   }

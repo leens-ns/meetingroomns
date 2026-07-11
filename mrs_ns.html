@@ -10,10 +10,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="회의실 예약" />
-  <link rel="manifest" href="/manifest.webmanifest?v=20260711-pwa2" />
-  <link rel="icon" href="/app-icon.svg" type="image/svg+xml" />
-  <link rel="icon" href="/app-icon-192.png" sizes="192x192" type="image/png" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="./manifest.webmanifest?v=20260712-pwa-path" />
+  <link rel="icon" href="./app-icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="./app-icon-192.png" sizes="192x192" type="image/png" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
   <style>
     @font-face {
       font-family: "Paperlogy";
@@ -2739,7 +2739,7 @@
     if (!("serviceWorker" in navigator) || location.protocol === "file:") {
       return Promise.resolve(null);
     }
-    return navigator.serviceWorker.register("/sw.js", { scope: "/" })
+    return navigator.serviceWorker.register("./sw.js", { scope: "./" })
       .then((registration) => {
         registration.update().catch(() => {});
         return navigator.serviceWorker.ready;

@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "남성초등학교 회의실 예약 시스템",
   "short_name": "회의실 예약",
   "description": "남성초등학교 교직원 회의실 예약 웹앱",
-  "start_url": "/?source=pwa",
-  "scope": "/",
+  "start_url": "./mrs_ns.html?source=pwa",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "background_color": "#f5f7fb",
@@ -14,31 +14,31 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/apple-touch-icon.png",
+      "src": "./apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-192.png",
+      "src": "./app-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-512.png",
+      "src": "./app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-512.png",
+      "src": "./app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/app-icon.svg",
+      "src": "./app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
