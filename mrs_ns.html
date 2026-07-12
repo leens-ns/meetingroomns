@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="회의실 예약" />
-  <link rel="manifest" href="./manifest.webmanifest?v=20260712-pwa-path" />
+  <link rel="manifest" href="./manifest.webmanifest?v=20260712-install" />
   <link rel="icon" href="./app-icon.svg" type="image/svg+xml" />
   <link rel="icon" href="./app-icon-192.png" sizes="192x192" type="image/png" />
   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
@@ -2228,8 +2228,9 @@
       login: "구글 로그인",
       logout: "로그아웃",
       installApp: "앱 설치",
+      installGuide: "설치 방법",
       installedApp: "설치됨",
-      installHelp: "Android Chrome에서 설치 창이 바로 열리지 않으면 페이지를 한 번 새로고침한 뒤 다시 눌러 주세요. 그래도 안 뜨면 오른쪽 위 ⋮ 메뉴에서 '앱 설치' 또는 '홈 화면에 추가'를 선택해 주세요. iPhone/iPad는 Safari에서 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택해야 하며, iOS 정책상 웹페이지가 자동 설치창을 열 수는 없습니다.",
+      installHelp: "Android Chrome에서 설치 창이 바로 열리지 않으면 페이지를 새로고침한 뒤 다시 눌러 주세요. 계속 안 뜨면 오른쪽 위 ⋮ 메뉴에서 '앱 설치' 또는 '홈 화면에 추가'를 선택해 주세요. 이미 홈 화면에 추가했던 바로가기가 있으면 삭제 후 다시 추가해야 새 아이콘이 반영됩니다. iPhone/iPad는 Safari에서 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택해야 하며, iOS 정책상 웹페이지가 자동 설치창을 열 수는 없습니다.",
       authAlert: "회의실 예약을 하려면 먼저 @nsworld.net 구글 계정으로 로그인해야 합니다.",
       makeReservation: "예약 만들기",
       reservationDate: "예약 날짜",
@@ -2306,8 +2307,9 @@
       login: "Sign in with Google",
       logout: "Sign out",
       installApp: "Install app",
+      installGuide: "Install help",
       installedApp: "Installed",
-      installHelp: "If the install prompt does not open on Android Chrome, refresh the page once and tap again. If it still does not appear, use the top-right ⋮ menu and choose Install app or Add to Home screen. On iPhone or iPad, open Safari, tap Share, then Add to Home Screen; iOS does not allow websites to open an automatic install prompt.",
+      installHelp: "If the install prompt does not open on Android Chrome, refresh the page and tap again. If it still does not appear, use the top-right ⋮ menu and choose Install app or Add to Home screen. If an old home-screen shortcut already exists, remove it first so the new icon can be applied. On iPhone or iPad, open Safari, tap Share, then Add to Home Screen; iOS does not allow websites to open an automatic install prompt.",
       authAlert: "Please sign in with your @nsworld.net Google account to reserve a room.",
       makeReservation: "Create Reservation",
       reservationDate: "Reservation Date",
@@ -2384,8 +2386,9 @@
       login: "Connexion Google",
       logout: "Déconnexion",
       installApp: "Installer l'app",
+      installGuide: "Aide installation",
       installedApp: "Installée",
-      installHelp: "Si l'installation ne s'ouvre pas sur Android Chrome, actualisez la page puis réessayez. Sinon, utilisez le menu ⋮ en haut à droite et choisissez Installer l'app ou Ajouter à l'écran d'accueil. Sur iPhone ou iPad, ouvrez Safari, touchez Partager, puis Ajouter à l'écran d'accueil; iOS ne permet pas aux sites d'ouvrir une installation automatique.",
+      installHelp: "Si l'installation ne s'ouvre pas sur Android Chrome, actualisez la page puis réessayez. Sinon, utilisez le menu ⋮ en haut à droite et choisissez Installer l'app ou Ajouter à l'écran d'accueil. Si un ancien raccourci existe déjà, supprimez-le d'abord pour appliquer la nouvelle icône. Sur iPhone ou iPad, ouvrez Safari, touchez Partager, puis Ajouter à l'écran d'accueil; iOS ne permet pas aux sites d'ouvrir une installation automatique.",
       authAlert: "Connectez-vous avec votre compte Google @nsworld.net pour réserver une salle.",
       makeReservation: "Créer une réservation",
       reservationDate: "Date de réservation",
@@ -2462,8 +2465,9 @@
       login: "Iniciar con Google",
       logout: "Cerrar sesión",
       installApp: "Instalar app",
+      installGuide: "Ayuda instalación",
       installedApp: "Instalada",
-      installHelp: "Si la instalación no aparece en Android Chrome, actualiza la página una vez y vuelve a tocar. Si sigue sin aparecer, usa el menú ⋮ de arriba a la derecha y elige Instalar app o Añadir a pantalla de inicio. En iPhone o iPad, abre Safari, toca Compartir y luego Añadir a pantalla de inicio; iOS no permite que una web abra la instalación automática.",
+      installHelp: "Si la instalación no aparece en Android Chrome, actualiza la página y vuelve a tocar. Si sigue sin aparecer, usa el menú ⋮ de arriba a la derecha y elige Instalar app o Añadir a pantalla de inicio. Si ya existe un acceso directo antiguo, elimínalo primero para aplicar el nuevo icono. En iPhone o iPad, abre Safari, toca Compartir y luego Añadir a pantalla de inicio; iOS no permite que una web abra la instalación automática.",
       authAlert: "Inicia sesión con tu cuenta Google @nsworld.net para reservar una sala.",
       makeReservation: "Crear reserva",
       reservationDate: "Fecha de reserva",
@@ -2728,6 +2732,11 @@
     return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   }
 
+  function isIosDevice() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
   function updateInstallButton() {
     const installBtn = document.getElementById("install-app-btn");
     if (!installBtn) return;
@@ -2736,11 +2745,28 @@
       installBtn.textContent = t("installedApp");
       installBtn.disabled = true;
       installBtn.setAttribute("aria-disabled", "true");
+      installBtn.title = "";
     } else {
-      installBtn.textContent = t("installApp");
+      installBtn.textContent = deferredInstallPrompt ? t("installApp") : t("installGuide");
       installBtn.disabled = false;
       installBtn.removeAttribute("aria-disabled");
+      installBtn.title = deferredInstallPrompt
+        ? t("installApp")
+        : (isIosDevice() ? "Safari 공유 버튼에서 홈 화면에 추가" : "브라우저 메뉴 또는 설치 조건 확인");
     }
+  }
+
+  function showInstallHelp() {
+    alert(t("installHelp"));
+  }
+
+  function updateAfterInstallPromptDismissed(choice) {
+    if (choice && choice.outcome === "accepted") {
+      appInstallAccepted = true;
+    } else {
+      deferredInstallPrompt = null;
+    }
+    updateInstallButton();
   }
 
   function registerServiceWorkerEarly() {
@@ -2772,14 +2798,11 @@
       deferredInstallPrompt = null;
       promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-      if (choice && choice.outcome === "accepted") {
-        appInstallAccepted = true;
-      }
-      updateInstallButton();
+      updateAfterInstallPromptDismissed(choice);
       return;
     }
 
-    alert(t("installHelp"));
+    showInstallHelp();
   }
 
   function isAdmin() {

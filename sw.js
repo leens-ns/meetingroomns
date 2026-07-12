@@ -1,4 +1,4 @@
-const CACHE_NAME = "namsung-meeting-room-v2-pwa-relative";
+const CACHE_NAME = "namsung-meeting-room-v2-install-20260712";
 const APP_SHELL = [
   "./mrs_ns.html",
   "./manifest.webmanifest",

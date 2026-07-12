@@ -1,17 +1,17 @@
 {
-  "id": "./",
+  "id": "./mrs_ns.html",
   "name": "남성초등학교 회의실 예약 시스템",
   "short_name": "회의실 예약",
   "description": "남성초등학교 교직원 회의실 예약 웹앱",
-  "start_url": "./mrs_ns.html?source=pwa",
+  "start_url": "./mrs_ns.html?source=pwa&v=20260712-install",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#f5f7fb",
   "theme_color": "#2563eb",
   "lang": "ko-KR",
   "orientation": "portrait",
   "prefer_related_applications": false,
+  "categories": ["productivity", "education"],
   "icons": [
     {
       "src": "./apple-touch-icon.png",
@@ -36,12 +36,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "./app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
     }
   ]
 }
