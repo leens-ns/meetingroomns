@@ -6,46 +6,63 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email is string;
     }
 
-    function appSettings() {
-      return get(/databases/$(database)/documents/settings/app).data;
+    function accessSettings() {
+      return get(/databases/$(database)/documents/settings/access).data;
     }
 
-    function settingsExists() {
-      return exists(/databases/$(database)/documents/settings/app);
+    function publicSettings() {
+      return get(/databases/$(database)/documents/settings/public).data;
+    }
+
+    function accessSettingsExists() {
+      return exists(/databases/$(database)/documents/settings/access);
     }
 
     function isAdmin() {
       return signedIn()
         && (request.auth.token.email == "leens@nsworld.net"
-          || (settingsExists() && request.auth.token.email in appSettings().adminEmails));
+          || (accessSettingsExists() && request.auth.token.email in accessSettings().adminEmails));
     }
 
     function isAllowed() {
       return signedIn()
         && (isAdmin()
-          || (settingsExists() && request.auth.token.email in appSettings().allowedEmails));
+          || (accessSettingsExists() && request.auth.token.email in accessSettings().allowedEmails));
     }
 
-    function validSettings() {
+    function validPublicSettings() {
       return request.resource.data.keys().hasOnly([
           'rooms',
           'roomNotes',
-          'adminEmails',
-          'allowedEmails',
           'blockTemplates',
           'timeSlots',
           'timeLabels'
         ])
         && request.resource.data.rooms is list
         && request.resource.data.roomNotes is list
-        && request.resource.data.adminEmails is list
-        && request.resource.data.allowedEmails is list
+        && request.resource.data.blockTemplates is list
         && request.resource.data.timeSlots is list
         && request.resource.data.timeLabels is list
-        && request.resource.data.adminEmails.size() > 0
+        && request.resource.data.rooms.size() > 0
+        && request.resource.data.rooms.size() <= 20
         && request.resource.data.roomNotes.size() == request.resource.data.rooms.size()
         && request.resource.data.timeSlots.size() > 0
+        && request.resource.data.timeSlots.size() <= 20
         && request.resource.data.timeSlots.size() == request.resource.data.timeLabels.size()
+        && request.resource.data.blockTemplates.size() <= 50;
+    }
+
+    function validAccessSettings() {
+      return request.resource.data.keys().hasOnly([
+          'adminEmails',
+          'allowedEmails'
+        ])
+        && request.resource.data.adminEmails is list
+        && request.resource.data.allowedEmails is list
+        && request.resource.data.adminEmails.size() > 0
+        && request.resource.data.adminEmails.size() <= 20
+        && request.resource.data.allowedEmails.size() > 0
+        && request.resource.data.allowedEmails.size() <= 200
         && request.auth.token.email in request.resource.data.adminEmails;
     }
 
@@ -58,40 +75,61 @@ service cloud.firestore {
           'note',
           'ownerEmail',
           'expiresAt',
+          'reservationKey',
           'repeatGroupId',
+          'timeSlotKey',
           'blocked'
         ])
         && request.resource.data.ownerEmail == request.auth.token.email
         && request.resource.data.date is string
+        && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
         && request.resource.data.room is string
+        && request.resource.data.room in publicSettings().rooms
         && request.resource.data.timeSlotIndex is int
+        && request.resource.data.timeSlotIndex >= 0
+        && request.resource.data.timeSlotIndex < publicSettings().timeSlots.size()
+        && request.resource.data.timeSlotKey is string
+        && request.resource.data.timeSlotKey.matches('^\\d{1,2}$')
+        && request.resource.data.reservationKey is string
+        && request.resource.data.reservationKey == request.resource.data.date + "__" + request.resource.data.room + "__" + request.resource.data.timeSlotKey
         && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
         && request.resource.data.note is string
+        && request.resource.data.note.size() <= 120
         && request.resource.data.expiresAt is timestamp
+        && (!('repeatGroupId' in request.resource.data)
+          || (request.resource.data.repeatGroupId is string && request.resource.data.repeatGroupId.size() <= 80))
         && (!('blocked' in request.resource.data) || isAdmin());
     }
 
     match /settings/app {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /settings/public {
       allow read: if isAllowed();
-      allow write: if isAdmin() && validSettings();
+      allow write: if isAdmin() && validPublicSettings();
+    }
+
+    match /settings/access {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && validAccessSettings();
     }
 
     match /reservations/{reservationId} {
       allow read: if isAllowed();
 
-      allow create: if isAllowed() && validReservationCreate();
+      allow create: if isAllowed()
+        && validReservationCreate()
+        && reservationId == request.resource.data.reservationKey;
 
       allow update: if false;
 
       allow delete: if isAdmin()
         || (isAllowed()
-          && (
-            (('ownerEmail' in resource.data) && resource.data.ownerEmail == request.auth.token.email)
-            || (!('ownerEmail' in resource.data)
-              && resource.data.name is string
-              && request.auth.token.name is string
-              && resource.data.name == request.auth.token.name)
-          )
+          && (('ownerEmail' in resource.data) && resource.data.ownerEmail == request.auth.token.email)
           && !('blocked' in resource.data));
     }
 

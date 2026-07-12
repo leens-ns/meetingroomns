@@ -64,6 +64,22 @@ jobs:
             });
 
             const adminEmails = ['leens@nsworld.net'];
+            const rooms = ['가온누리', '교무실', '교육문화관', '상담실', '옥스퍼드 교실'];
+            const roomNotes = ['Library', 'Office', 'Auditorium', 'Counseling Room', 'Oxford'];
+            const timeSlots = [
+              '08:30~08:55',
+              '09:00~09:40',
+              '09:45~10:25',
+              '10:30~11:10',
+              '11:15~11:55',
+              '12:00~12:40',
+              '12:40~13:25',
+              '13:30~14:10',
+              '14:15~14:55',
+              '15:00~15:40',
+              '15:40~16:30'
+            ];
+            const timeLabels = ['아침시간', '1교시', '2교시', '3교시', '4교시', '5교시', '점심시간', '6교시', '7교시', '8교시', '방과후'];
             const teacherEmails = [
               'ansk@nsworld.net',
               'anyj@nsworld.net',
@@ -129,13 +145,59 @@ jobs:
             const uniqueSorted = (items) => [...new Set(items.map((item) => String(item).trim().toLowerCase()).filter(Boolean))].sort();
             const allowedEmails = uniqueSorted([...adminEmails, ...teacherEmails]);
 
-            await admin.firestore().doc('settings/app').set({
+            await admin.firestore().doc('settings/public').set({
+              rooms,
+              roomNotes,
+              blockTemplates: [],
+              timeSlots,
+              timeLabels
+            }, { merge: true });
+
+            await admin.firestore().doc('settings/access').set({
               adminEmails: uniqueSorted(adminEmails),
               allowedEmails
             }, { merge: true });
 
+            const reservationKey = (date, room, timeSlotIndex) => `${date}__${room}__${timeSlotIndex}`;
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 14);
+            const cutoffKey = cutoff.toISOString().slice(0, 10);
+            const reservations = await admin.firestore().collection('reservations')
+              .where('date', '>=', cutoffKey)
+              .get();
+            let migratedReservations = 0;
+            let removedLegacyDuplicates = 0;
+            for (const doc of reservations.docs) {
+              const data = doc.data();
+              if (!data || typeof data.date !== 'string' || typeof data.room !== 'string' || !Number.isInteger(data.timeSlotIndex)) {
+                continue;
+              }
+              const timeSlotKey = String(data.timeSlotIndex);
+              const key = reservationKey(data.date, data.room, timeSlotKey);
+              if (doc.id === key && data.reservationKey === key && data.timeSlotKey === timeSlotKey) {
+                continue;
+              }
+              const targetRef = admin.firestore().collection('reservations').doc(key);
+              const targetDoc = await targetRef.get();
+              if (!targetDoc.exists) {
+                await targetRef.set({
+                  ...data,
+                  timeSlotKey,
+                  reservationKey: key
+                });
+                migratedReservations += 1;
+              } else {
+                removedLegacyDuplicates += 1;
+              }
+              if (doc.id !== key) {
+                await doc.ref.delete();
+              }
+            }
+
             console.log(`seeded ${allowedEmails.length} allowed accounts`);
             console.log(`admins: ${adminEmails.join(', ')}`);
+            console.log(`migrated active reservations: ${migratedReservations}`);
+            console.log(`removed legacy duplicate reservations: ${removedLegacyDuplicates}`);
             await admin.app().delete();
           }
 

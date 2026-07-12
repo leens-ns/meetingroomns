@@ -2177,7 +2177,9 @@
     "옥스퍼드 교실": "room-oxford"
   };
 
-  const SETTINGS_REF = db.collection("settings").doc("app");
+  const LEGACY_SETTINGS_REF = db.collection("settings").doc("app");
+  const PUBLIC_SETTINGS_REF = db.collection("settings").doc("public");
+  const ACCESS_SETTINGS_REF = db.collection("settings").doc("access");
   const RESERVATION_KEEP_DAYS = 14;
   const AUDIT_LOG_KEEP_DAYS = 90;
 
@@ -2781,11 +2783,24 @@
   }
 
   function isAdmin() {
-    return currentUser && adminEmails.includes(currentUser.email);
+    const email = currentUser
+      ? currentUser.email
+      : (auth.currentUser && auth.currentUser.email ? String(auth.currentUser.email).toLowerCase() : "");
+    return Boolean(email && adminEmails.includes(email));
   }
 
   function isAllowedEmail(email) {
     return allowedEmails.includes(email) || adminEmails.includes(email);
+  }
+
+  async function verifyFirestoreAccess() {
+    try {
+      await PUBLIC_SETTINGS_REF.get();
+      return true;
+    } catch (error) {
+      console.error("접근 권한 확인 실패", error);
+      return false;
+    }
   }
 
   function cleanList(values) {
@@ -2798,6 +2813,14 @@
 
   function cleanEmailList(values) {
     return cleanList(values.map((value) => String(value || "").trim().toLowerCase()));
+  }
+
+  function truncateText(value, maxLength) {
+    return String(value || "").trim().slice(0, maxLength);
+  }
+
+  function getReservationKey(dateKey, room, timeSlotIndex) {
+    return `${dateKey}__${room}__${timeSlotIndex}`;
   }
 
   function normalizeRoomNotes(rooms, notes = []) {
@@ -2815,6 +2838,21 @@
 
   function shouldShowRoomNote() {
     return currentLanguage !== "ko";
+  }
+
+  function readPublicSettings(data = {}) {
+    ROOMS = cleanList(Array.isArray(data.rooms) ? data.rooms : DEFAULT_ROOMS);
+    ROOM_NOTES = normalizeRoomNotes(ROOMS, data.roomNotes);
+    blockTemplates = Array.isArray(data.blockTemplates) ? data.blockTemplates : [];
+    if (Array.isArray(data.timeSlots) && Array.isArray(data.timeLabels) && data.timeSlots.length === data.timeLabels.length && data.timeSlots.length > 0) {
+      TIME_SLOTS = data.timeSlots.map((value) => String(value || "").trim()).filter(Boolean);
+      TIME_LABELS = data.timeLabels.map((value) => String(value || "").trim()).filter(Boolean);
+    }
+  }
+
+  function readAccessSettings(data = {}) {
+    adminEmails = cleanEmailList(Array.isArray(data.adminEmails) ? data.adminEmails : DEFAULT_ADMIN_EMAILS);
+    allowedEmails = cleanEmailList(Array.isArray(data.allowedEmails) ? data.allowedEmails : DEFAULT_ALLOWED_EMAILS);
   }
 
   function appendRoomDisplay(parent, room, options = {}) {
@@ -2835,17 +2873,25 @@
   async function loadAppSettings() {
     try {
       if (auth.currentUser) {
-        const doc = await SETTINGS_REF.get();
-        if (doc.exists) {
-          const data = doc.data() || {};
-          ROOMS = cleanList(Array.isArray(data.rooms) ? data.rooms : DEFAULT_ROOMS);
-          ROOM_NOTES = normalizeRoomNotes(ROOMS, data.roomNotes);
-          adminEmails = cleanEmailList(Array.isArray(data.adminEmails) ? data.adminEmails : DEFAULT_ADMIN_EMAILS);
-          allowedEmails = cleanEmailList(Array.isArray(data.allowedEmails) ? data.allowedEmails : DEFAULT_ALLOWED_EMAILS);
-          blockTemplates = Array.isArray(data.blockTemplates) ? data.blockTemplates : [];
-          if (Array.isArray(data.timeSlots) && Array.isArray(data.timeLabels) && data.timeSlots.length === data.timeLabels.length && data.timeSlots.length > 0) {
-            TIME_SLOTS = data.timeSlots.map((value) => String(value || "").trim()).filter(Boolean);
-            TIME_LABELS = data.timeLabels.map((value) => String(value || "").trim()).filter(Boolean);
+        const publicDoc = await PUBLIC_SETTINGS_REF.get();
+        if (publicDoc.exists) {
+          readPublicSettings(publicDoc.data() || {});
+        } else if (isAdmin()) {
+          const legacyDoc = await LEGACY_SETTINGS_REF.get();
+          if (legacyDoc.exists) {
+            readPublicSettings(legacyDoc.data() || {});
+          }
+        }
+
+        if (isAdmin()) {
+          const accessDoc = await ACCESS_SETTINGS_REF.get();
+          if (accessDoc.exists) {
+            readAccessSettings(accessDoc.data() || {});
+          } else {
+            const legacyDoc = await LEGACY_SETTINGS_REF.get();
+            if (legacyDoc.exists) {
+              readAccessSettings(legacyDoc.data() || {});
+            }
           }
         }
       }
@@ -2900,7 +2946,20 @@
       throw new Error("시간표는 교시명과 시간이 같은 개수여야 합니다.");
     }
 
-    await SETTINGS_REF.set(payload, { merge: true });
+    const publicPayload = {
+      rooms: payload.rooms,
+      roomNotes: payload.roomNotes,
+      blockTemplates: payload.blockTemplates,
+      timeSlots: payload.timeSlots,
+      timeLabels: payload.timeLabels
+    };
+    const accessPayload = {
+      adminEmails: payload.adminEmails,
+      allowedEmails: payload.allowedEmails
+    };
+
+    await PUBLIC_SETTINGS_REF.set(publicPayload, { merge: true });
+    await ACCESS_SETTINGS_REF.set(accessPayload, { merge: true });
     ROOMS = payload.rooms;
     ROOM_NOTES = payload.roomNotes;
     adminEmails = payload.adminEmails;
@@ -4105,12 +4164,16 @@ async function handleWeekItemClick(reservation) {
       return false;
     }
 
+    const timeSlotKey = String(timeSlotIndex);
+    const reservationKey = getReservationKey(dateKey, room, timeSlotKey);
     const payload = {
       date: dateKey,
       room,
       timeSlotIndex,
-      name,
-      note: note || "",
+      timeSlotKey,
+      reservationKey,
+      name: truncateText(name, 80),
+      note: truncateText(note, 120),
       ownerEmail: currentUser ? currentUser.email : "",
       expiresAt: getReservationExpiry(dateKey)
     };
@@ -4122,10 +4185,17 @@ async function handleWeekItemClick(reservation) {
       payload.blocked = true;
     }
 
-    const docRef = await db.collection("reservations").add(payload);
+    try {
+      await db.collection("reservations").doc(reservationKey).set(payload);
+    } catch (error) {
+      if (error && (error.code === "permission-denied" || error.code === "already-exists")) {
+        return false;
+      }
+      throw error;
+    }
 
     reservations.push({
-      id: docRef.id,
+      id: reservationKey,
       ...payload
     });
 
@@ -4159,9 +4229,7 @@ async function handleWeekItemClick(reservation) {
 
     const currentName = currentUser.name || currentUser.email;
     const amAdmin = isAdmin();
-    const isOwn = reservation.ownerEmail
-      ? reservation.ownerEmail === currentUser.email
-      : reservation.name === currentName;
+    const isOwn = reservation.ownerEmail === currentUser.email;
 
     // 예약 불가(차단) 해제 처리
     if (reservation.blocked) {
@@ -4438,7 +4506,7 @@ async function deleteReservationsBulk(filterFn, label) {
           } else if (existing) {
             const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
             const isMine = currentUser && (
-              existing.ownerEmail ? existing.ownerEmail === currentUser.email : existing.name === currentName
+              existing.ownerEmail === currentUser.email
             );
             const ownerClass = isMine ? "my-reservation" : "other-reservation";
             slotDiv.className = "slot booked " + ownerClass;
@@ -4503,7 +4571,7 @@ function renderWeekView() {
           const currentName = currentUser.name || currentUser.email;
           roomReservations = roomReservations.filter((r) => {
             if (r.blocked) return false;
-            return r.ownerEmail ? r.ownerEmail === currentUser.email : r.name === currentName;
+            return r.ownerEmail === currentUser.email;
           });
         }
 
@@ -4535,7 +4603,7 @@ function renderWeekView() {
             } else {
               const currentName = currentUser ? (currentUser.name || currentUser.email) : null;
               const isMine = currentUser && (
-                r.ownerEmail ? r.ownerEmail === currentUser.email : r.name === currentName
+                r.ownerEmail === currentUser.email
               );
               const ownerClass = isMine ? "my-reservation" : "other-reservation";
               item.className = "week-slot-item " + ownerClass;
@@ -4701,6 +4769,10 @@ function syncDateInputs() {
         await ensureAppSettingsLoaded(true);
 
         if (!isAllowedEmail(email)) {
+          alert("관리자가 허용한 계정만 사용할 수 있습니다.");
+          return auth.signOut();
+        }
+        if (!(await verifyFirestoreAccess())) {
           alert("관리자가 허용한 계정만 사용할 수 있습니다.");
           return auth.signOut();
         }
@@ -5287,6 +5359,11 @@ function syncDateInputs() {
       const name = user.displayName || email.split("@")[0];
 
       if (!isAllowedEmail(email)) {
+        alert("관리자가 허용한 계정만 사용할 수 있습니다.");
+        await auth.signOut();
+        return;
+      }
+      if (!(await verifyFirestoreAccess())) {
         alert("관리자가 허용한 계정만 사용할 수 있습니다.");
         await auth.signOut();
         return;
