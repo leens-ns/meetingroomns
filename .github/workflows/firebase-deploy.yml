@@ -158,46 +158,8 @@ jobs:
               allowedEmails
             }, { merge: true });
 
-            const reservationKey = (date, room, timeSlotIndex) => `${date}__${room}__${timeSlotIndex}`;
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - 14);
-            const cutoffKey = cutoff.toISOString().slice(0, 10);
-            const reservations = await admin.firestore().collection('reservations')
-              .where('date', '>=', cutoffKey)
-              .get();
-            let migratedReservations = 0;
-            let removedLegacyDuplicates = 0;
-            for (const doc of reservations.docs) {
-              const data = doc.data();
-              if (!data || typeof data.date !== 'string' || typeof data.room !== 'string' || !Number.isInteger(data.timeSlotIndex)) {
-                continue;
-              }
-              const timeSlotKey = String(data.timeSlotIndex);
-              const key = reservationKey(data.date, data.room, timeSlotKey);
-              if (doc.id === key && data.reservationKey === key && data.timeSlotKey === timeSlotKey) {
-                continue;
-              }
-              const targetRef = admin.firestore().collection('reservations').doc(key);
-              const targetDoc = await targetRef.get();
-              if (!targetDoc.exists) {
-                await targetRef.set({
-                  ...data,
-                  timeSlotKey,
-                  reservationKey: key
-                });
-                migratedReservations += 1;
-              } else {
-                removedLegacyDuplicates += 1;
-              }
-              if (doc.id !== key) {
-                await doc.ref.delete();
-              }
-            }
-
             console.log(`seeded ${allowedEmails.length} allowed accounts`);
             console.log(`admins: ${adminEmails.join(', ')}`);
-            console.log(`migrated active reservations: ${migratedReservations}`);
-            console.log(`removed legacy duplicate reservations: ${removedLegacyDuplicates}`);
             await admin.app().delete();
           }
 
