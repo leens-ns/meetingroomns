@@ -1232,6 +1232,21 @@
       flex-wrap: wrap;
     }
 
+    .update-actions .btn {
+      min-height: 44px;
+      flex-direction: column;
+      gap: 1px;
+      line-height: 1.2;
+      white-space: normal;
+    }
+
+    .update-actions .btn .update-btn-en {
+      display: block;
+      font-size: 0.67rem;
+      font-weight: 500;
+      opacity: 0.82;
+    }
+
     .manual-section {
       border-top: 1px solid #e5e7eb;
       margin-top: 12px;
@@ -1674,9 +1689,9 @@
       </ul>
       <p>관리자 기능 변경사항은 관리자 화면에서 별도로 안내됩니다. 이 안내는 게시일 이후 일주일 동안만 표시됩니다.<br><span class="update-en">Admin-only updates appear separately on the admin screen. This notice is shown for one week after publication.</span></p>
       <div class="update-actions">
-        <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="user">오늘 하루 보지 않음</button>
-        <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="user">다시 보지 않음</button>
-        <button type="button" class="btn btn-primary" id="update-close">확인</button>
+        <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="user">오늘 하루 보지 않음<span class="update-btn-en">Hide today</span></button>
+        <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="user">다시 보지 않음<span class="update-btn-en">Don't show again</span></button>
+        <button type="button" class="btn btn-primary" id="update-close">확인<span class="update-btn-en">OK</span></button>
       </div>
     </div>
   </div>
@@ -1697,9 +1712,9 @@
       </ul>
       <p>이 안내는 관리자 화면에서만, 게시일 이후 일주일 동안만 표시됩니다.<br><span class="update-en">This notice appears only on the admin screen and only for one week after publication.</span></p>
       <div class="update-actions">
-        <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="admin">오늘 하루 보지 않음</button>
-        <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="admin">다시 보지 않음</button>
-        <button type="button" class="btn btn-primary" id="admin-update-close">확인</button>
+        <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="admin">오늘 하루 보지 않음<span class="update-btn-en">Hide today</span></button>
+        <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="admin">다시 보지 않음<span class="update-btn-en">Don't show again</span></button>
+        <button type="button" class="btn btn-primary" id="admin-update-close">확인<span class="update-btn-en">OK</span></button>
       </div>
     </div>
   </div>
