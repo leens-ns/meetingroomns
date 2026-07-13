@@ -1175,6 +1175,15 @@
       color: #111827;
     }
 
+    .update-en-title {
+      display: block;
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
     .update-dialog p {
       margin: 8px 0 0;
       color: #4b5563;
@@ -1205,6 +1214,14 @@
       margin-bottom: 2px;
       color: #111827;
       font-size: 0.84rem;
+    }
+
+    .update-list .update-en {
+      display: block;
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 0.74rem;
+      line-height: 1.4;
     }
 
     .update-actions {
@@ -1644,18 +1661,18 @@
   <div class="update-modal hidden" id="update-modal" role="dialog" aria-modal="true" aria-labelledby="update-title">
     <div class="update-dialog">
       <span class="badge">v2.0 업데이트 안내</span>
-      <h2 id="update-title">예약 화면 v2.0 변경 내용</h2>
-      <p>v2.0에서는 일반 예약 사용자가 시간을 고르고 현황을 확인하기 쉽게 개선했습니다.</p>
+      <h2 id="update-title">예약 화면 v2.0 변경 내용 <span class="update-en-title">Reservation screen v2.0 updates</span></h2>
+      <p>v2.0에서는 일반 예약 사용자가 시간을 고르고 현황을 확인하기 쉽게 개선했습니다.<br><span class="update-en">In v2.0, the reservation screen is easier to use for selecting times and checking room availability.</span></p>
       <ul class="update-list">
-        <li><strong>시간 선택 방식 개선</strong>버튼식 선택으로 바꾸고, 띄엄띄엄 여러 시간을 선택할 수 있다는 점이 더 분명하게 보이도록 조정했습니다.</li>
-        <li><strong>예약 화면 가독성 개선</strong>체크 표시를 제거하고 파란 테두리와 배경만으로 선택 상태를 표시해, 선택된 칸의 높이가 들쭉날쭉해지는 문제를 줄였습니다.</li>
-        <li><strong>시간 표시 정리</strong>시간 사이의 불필요한 점 표기를 빼고, 시간 텍스트는 조금 작고 가볍게 보이도록 조정했습니다.</li>
-        <li><strong>예약 현황 보기 개선</strong>가로 스크롤 없이 현황을 볼 수 있도록 표와 셀 안의 글자 흐름을 정리했습니다.</li>
-        <li><strong>다국어와 앱 설치 지원</strong>영어, 프랑스어, 스페인어 화면 전환과 앱 설치 버튼을 첫 화면에서 사용할 수 있게 했습니다.</li>
-        <li><strong>회의실명 보조 표기</strong>외국인 사용자가 혼동하지 않도록 회의실명 아래에 작은 영문 주석을 함께 표시합니다.</li>
-        <li><strong>용어 정리</strong>일과후 표기를 학교 맥락에 맞춰 방과후로 바꿨습니다.</li>
+        <li><strong>시간 선택 방식 개선</strong>버튼식 선택으로 바꾸고, 띄엄띄엄 여러 시간을 선택할 수 있다는 점이 더 분명하게 보이도록 조정했습니다.<span class="update-en">Time selection now uses buttons and supports choosing non-continuous time slots.</span></li>
+        <li><strong>예약 화면 가독성 개선</strong>체크 표시를 제거하고 파란 테두리와 배경만으로 선택 상태를 표시해, 선택된 칸의 높이가 들쭉날쭉해지는 문제를 줄였습니다.<span class="update-en">Selected items are shown with a blue border/background for a cleaner layout.</span></li>
+        <li><strong>시간 표시 정리</strong>시간 사이의 불필요한 점 표기를 빼고, 시간 텍스트는 조금 작고 가볍게 보이도록 조정했습니다.<span class="update-en">Time labels are cleaner, smaller, and easier to scan.</span></li>
+        <li><strong>예약 현황 보기 개선</strong>가로 스크롤 없이 현황을 볼 수 있도록 표와 셀 안의 글자 흐름을 정리했습니다.<span class="update-en">Reservation status is adjusted to reduce horizontal scrolling.</span></li>
+        <li><strong>다국어와 앱 설치 지원</strong>영어, 프랑스어, 스페인어 화면 전환과 앱 설치 버튼을 첫 화면에서 사용할 수 있게 했습니다.<span class="update-en">Language switching and app install support are available from the first screen.</span></li>
+        <li><strong>회의실명 보조 표기</strong>외국인 사용자가 혼동하지 않도록 회의실명 아래에 작은 영문 주석을 함께 표시합니다.<span class="update-en">Room names can show small English notes under the Korean name.</span></li>
+        <li><strong>용어 정리</strong>일과후 표기를 학교 맥락에 맞춰 방과후로 바꿨습니다.<span class="update-en">The after-school time label has been updated to better fit the school context.</span></li>
       </ul>
-      <p>관리자 기능 변경사항은 관리자 화면에서 별도로 안내됩니다. 이 안내는 게시일 이후 일주일 동안만 표시됩니다.</p>
+      <p>관리자 기능 변경사항은 관리자 화면에서 별도로 안내됩니다. 이 안내는 게시일 이후 일주일 동안만 표시됩니다.<br><span class="update-en">Admin-only updates appear separately on the admin screen. This notice is shown for one week after publication.</span></p>
       <div class="update-actions">
         <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="user">오늘 하루 보지 않음</button>
         <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="user">다시 보지 않음</button>
@@ -1667,18 +1684,18 @@
   <div class="update-modal hidden" id="admin-update-modal" role="dialog" aria-modal="true" aria-labelledby="admin-update-title">
     <div class="update-dialog">
       <span class="badge">v2.0 관리자 업데이트 안내</span>
-      <h2 id="admin-update-title">관리자 화면 v2.0 변경 내용</h2>
-      <p>v2.0에서는 관리자 도구의 배치와 장기 운영 관리를 중심으로 개선했습니다.</p>
+      <h2 id="admin-update-title">관리자 화면 v2.0 변경 내용 <span class="update-en-title">Admin screen v2.0 updates</span></h2>
+      <p>v2.0에서는 관리자 도구의 배치와 장기 운영 관리를 중심으로 개선했습니다.<br><span class="update-en">In v2.0, admin tools are reorganized for easier long-term operation.</span></p>
       <ul class="update-list">
-        <li><strong>관리자 도구 접기</strong>관리자 계정으로 접속해도 예약 화면을 먼저 편하게 사용할 수 있도록, 관리자 도구는 필요할 때 펼쳐 보게 바꿨습니다.</li>
-        <li><strong>관리자 도구 재배치</strong>반복 예약 불가 일괄 등록, 회의실 공간 관리, 시간표 설정, CSV 관리, 데이터 보관 안내 순서로 정리했습니다.</li>
-        <li><strong>교직원 계정 권한 반영</strong>교직원 구글 계정 목록을 기준으로 교사 계정을 등록하고, 관리자가 계정별 역할을 관리자 또는 교사로 바꿀 수 있게 했습니다.</li>
-        <li><strong>회의실 공간 관리 추가</strong>관리자가 회의실 이름을 수정하고, 공간을 추가하거나 삭제할 수 있게 했습니다. 목록은 두 칸 배치와 우측 삭제 버튼 기준으로 정돈했습니다.</li>
-        <li><strong>시간표와 CSV 관리 정리</strong>긴 목록은 내부 스크롤로 관리하고, 삭제 버튼 위치를 맞춰 관리자 화면의 흔들림을 줄였습니다.</li>
-        <li><strong>반복 예약 불가 일괄 등록 개선</strong>날짜를 먼저 정하고, 장소와 시간을 버튼으로 선택할 수 있게 바꿨습니다.</li>
-        <li><strong>데이터 보관 도구 추가</strong>2개월부터 12개월까지 기준을 골라 지난 예약을 반자동으로 정리할 수 있게 했습니다.</li>
+        <li><strong>관리자 도구 접기</strong>관리자 계정으로 접속해도 예약 화면을 먼저 편하게 사용할 수 있도록, 관리자 도구는 필요할 때 펼쳐 보게 바꿨습니다.<span class="update-en">Admin tools stay folded so admins can use the reservation screen first.</span></li>
+        <li><strong>관리자 도구 재배치</strong>반복 예약 불가 일괄 등록, 회의실 공간 관리, 시간표 설정, CSV 관리, 데이터 보관 안내 순서로 정리했습니다.<span class="update-en">Admin sections are reordered by common workflow.</span></li>
+        <li><strong>교직원 계정 권한 반영</strong>교직원 구글 계정 목록을 기준으로 교사 계정을 등록하고, 관리자가 계정별 역할을 관리자 또는 교사로 바꿀 수 있게 했습니다.<span class="update-en">Staff accounts can be managed as admin or teacher accounts.</span></li>
+        <li><strong>회의실 공간 관리 추가</strong>관리자가 회의실 이름을 수정하고, 공간을 추가하거나 삭제할 수 있게 했습니다. 목록은 두 칸 배치와 우측 삭제 버튼 기준으로 정돈했습니다.<span class="update-en">Admins can edit, add, or remove room names and English notes.</span></li>
+        <li><strong>시간표와 CSV 관리 정리</strong>긴 목록은 내부 스크롤로 관리하고, 삭제 버튼 위치를 맞춰 관리자 화면의 흔들림을 줄였습니다.<span class="update-en">Long timetable and CSV lists are easier to manage without layout shifting.</span></li>
+        <li><strong>반복 예약 불가 일괄 등록 개선</strong>날짜를 먼저 정하고, 장소와 시간을 버튼으로 선택할 수 있게 바꿨습니다.<span class="update-en">Bulk unavailable reservations now use clearer date, room, and time controls.</span></li>
+        <li><strong>데이터 보관 도구 추가</strong>2개월부터 12개월까지 기준을 골라 지난 예약을 반자동으로 정리할 수 있게 했습니다.<span class="update-en">Admins can clean up old reservation data by selecting a 2-12 month range.</span></li>
       </ul>
-      <p>이 안내는 관리자 화면에서만, 게시일 이후 일주일 동안만 표시됩니다.</p>
+      <p>이 안내는 관리자 화면에서만, 게시일 이후 일주일 동안만 표시됩니다.<br><span class="update-en">This notice appears only on the admin screen and only for one week after publication.</span></p>
       <div class="update-actions">
         <button type="button" class="btn btn-outline" data-update-action="hide-today" data-update-target="admin">오늘 하루 보지 않음</button>
         <button type="button" class="btn btn-outline" data-update-action="hide-forever" data-update-target="admin">다시 보지 않음</button>
