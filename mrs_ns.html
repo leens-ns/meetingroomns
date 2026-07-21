@@ -304,11 +304,16 @@
     }
 
     .admin-actions .btn {
+      min-width: 0;
       width: 100%;
       font-size: 0.8rem;
       padding: 6px 10px;
       justify-content: center;
       text-align: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+      line-height: 1.18;
     }
 
     .card {
@@ -542,7 +547,8 @@
     }
 
     .date-nav {
-      display: inline-flex;
+      display: grid;
+      grid-template-columns: minmax(28px, 1fr) auto minmax(28px, 1fr);
       align-items: center;
       gap: 4px;
       font-size: 0.8rem;
@@ -550,6 +556,7 @@
       padding: 2px 4px;
       background: #f3f4ff;
       border: 1px solid #c7d2fe;
+      width: min(100%, 300px);
     }
 
     .date-nav button {
@@ -561,16 +568,26 @@
       border-radius: var(--radius-small);
     }
 
+    .date-nav button:first-child {
+      justify-self: start;
+    }
+
+    .date-nav button:last-child {
+      justify-self: end;
+    }
+
     .date-nav button:hover {
       background: rgba(79, 70, 229, 0.08);
     }
 
     .date-display {
+      justify-self: center;
       padding: 0 6px;
       font-weight: 600;
       color: #111827;
       cursor: pointer;
       border-radius: var(--radius-small);
+      text-align: center;
       transition: background-color 0.15s ease, transform 0.05s ease;
     }
 
@@ -974,6 +991,10 @@
       .view-title-row {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .date-nav {
+        width: 100%;
       }
 
       .admin-actions .btn,
